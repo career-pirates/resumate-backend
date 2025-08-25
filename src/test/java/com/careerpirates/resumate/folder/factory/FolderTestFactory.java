@@ -1,5 +1,6 @@
 package com.careerpirates.resumate.folder.factory;
 
+import com.careerpirates.resumate.folder.application.dto.request.FolderRequest;
 import com.careerpirates.resumate.folder.domain.Folder;
 
 import java.util.List;
@@ -24,5 +25,13 @@ public class FolderTestFactory {
         Folder subFolderBB = createFolder(folderA, "BB", 1);
 
         return List.of(folderA, folderB, subFolderAA, subFolderAB, subFolderBA, subFolderBB);
+    }
+
+    public static FolderRequest createFolderRequest(Long parentId, String name, Integer order) {
+        return FolderRequest.builder()
+                .parentId(parentId)
+                .name(name)
+                .order(order)
+                .build();
     }
 }

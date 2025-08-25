@@ -33,8 +33,8 @@ class FolderRepositoryTest {
         folderRepository.deleteAllInBatch();
     }
 
-    @DisplayName("상위 폴더 조회 성공")
     @Test
+    @DisplayName("상위 폴더 조회 성공")
     void findParentFolders_success() {
         // when
         List<Folder> parentFolders = folderRepository.findParentFolders();
