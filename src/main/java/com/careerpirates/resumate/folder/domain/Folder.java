@@ -21,7 +21,7 @@ public class Folder {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "name", length = 100, nullable = false)
+    @Column(name = "name", nullable = false, columnDefinition = "CHAR(50)")
     private String name;
 
     @Column(name = "display_order", nullable = false)
@@ -81,5 +81,12 @@ public class Folder {
     public void removeChild(Folder child) {
         children.remove(child);
         child.parent = null;
+    }
+
+    @PostLoad
+    private void trimNameAfterLoad() {
+        if (this.name != null) {
+            this.name = this.name.trim();
+        }
     }
 }
