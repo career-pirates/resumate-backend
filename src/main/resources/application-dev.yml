@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: resumate-backend
+  config:
+    activate:
+      on-profile: dev
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  datasource:
+    url: jdbc:postgresql://localhost:5432/resumate
+    username: career
+    password: pirate123!
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+          batch_size: 500
+
+cors:
+  allowed-origins: http://localhost:3000
+  allowed-methods: GET, POST, PUT, DELETE
+  allowed-headers: Access-Control-Allow-Origin, Content-type, Access-Control-Allow-Headers, Authorization, X-Requested-With
+
+jwt:
+  secret: b0a4ff363885bcc010ab2d331ab5f3d957f7e8aa8233a175d039acd1c2affd45
+  access-token-expiration-duration: 1800000
+  refresh-token-expiration-duration: 604800000
+
+cookie:
+  domain: localhost
