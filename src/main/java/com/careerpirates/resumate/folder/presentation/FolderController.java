@@ -21,13 +21,20 @@ public class FolderController {
     public SuccessResponse<FolderResponse> createFolder(@RequestBody @Valid FolderRequest request) {
 
         FolderResponse response = folderService.createFolder(request);
-        return SuccessResponse.of(FolderSuccess.FOLDER_CREATE_SUCCESS, response);
+        return SuccessResponse.of(FolderSuccess.CREATE_FOLDER, response);
     }
 
     @PatchMapping("/{id}")
     public SuccessResponse<FolderResponse> updateFolderName(@PathVariable Long id,
                                                             @RequestBody @Valid FolderNameRequest request) {
         FolderResponse response = folderService.updateFolderName(id, request);
-        return SuccessResponse.of(FolderSuccess.FOLDER_UPDATE_NAME_SUCCESS, response);
+        return SuccessResponse.of(FolderSuccess.UPDATE_FOLDER_NAME, response);
+    }
+
+    @DeleteMapping("/{id}")
+    public SuccessResponse<?> deleteFolder(@PathVariable Long id) {
+
+        folderService.deleteFolder(id);
+        return SuccessResponse.of(FolderSuccess.DELETE_FOLDER);
     }
 }

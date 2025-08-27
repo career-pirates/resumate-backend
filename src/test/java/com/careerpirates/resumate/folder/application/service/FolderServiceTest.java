@@ -14,6 +14,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.Optional;
+
 import static com.careerpirates.resumate.folder.factory.FolderTestFactory.createDefaultFolders;
 import static com.careerpirates.resumate.folder.factory.FolderTestFactory.createFolderRequest;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -102,5 +104,43 @@ class FolderServiceTest {
         assertThat(found).extracting("name")
                 .isEqualTo(response.getName())
                 .isEqualTo("새이름");
+    }
+
+    @Test
+    @DisplayName("상위 폴더를 삭제합니다.")
+    void deleteFolder_success() {
+        // given
+        Folder folderA = folderRepository.findByName("A").get();
+
+        // when
+        folderService.deleteFolder(folderA.getId());
+
+        // then
+        Optional<Folder> resultA = folderRepository.findByName("A");
+        assertThat(resultA.isPresent()).isFalse();
+        Optional<Folder> resultAB = folderRepository.findByName("AB");
+        assertThat(resultAB.isPresent()).isFalse();
+        Optional<Folder> resultB = folderRepository.findByName("B");
+        assertThat(resultB.isPresent()).isTrue();
+        Optional<Folder> resultBA = folderRepository.findByName("BA");
+        assertThat(resultBA.isPresent()).isTrue();
+    }
+
+    @Test
+    @DisplayName("하위 폴더를 삭제합니다.")
+    void deleteSubFolder_success() {
+        // given
+        Folder folderAA = folderRepository.findByName("AA").get();
+
+        // when
+        folderService.deleteFolder(folderAA.getId());
+
+        // then
+        Optional<Folder> resultA = folderRepository.findByName("A");
+        assertThat(resultA.isPresent()).isTrue();
+        Optional<Folder> resultAA = folderRepository.findByName("AA");
+        assertThat(resultAA.isPresent()).isFalse();
+        Optional<Folder> resultAB = folderRepository.findByName("AB");
+        assertThat(resultAB.isPresent()).isTrue();
     }
 }
