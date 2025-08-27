@@ -92,12 +92,19 @@ public class Folder {
     }
 
     public void addChild(Folder child) {
-        children.add(child);
+        if (child == null) return;
+        if (child.parent != null) {
+            child.parent.removeChild(child);
+        }
+        if (!children.contains(child)) {
+            children.add(child);
+        }
         child.parent = this;
     }
 
     public void removeChild(Folder child) {
-        children.remove(child);
-        child.parent = null;
+        if (child != null && children.remove(child)) {
+            child.parent = null;
+        }
     }
 }
