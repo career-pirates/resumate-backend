@@ -20,11 +20,11 @@ public class FolderService {
 
     @Transactional
     public FolderResponse createFolder(FolderRequest request) {
-        Folder parent = resolveParentFolder(request.getParentId());
+        Folder parent = resolveParentFolder(request.parentId());
 
         Folder folder = Folder.builder()
-                .name(request.getName())
-                .order(request.getOrder())
+                .name(request.name())
+                .order(request.order())
                 .parent(parent)
                 .build();
 

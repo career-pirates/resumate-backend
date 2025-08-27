@@ -21,7 +21,7 @@ public class Folder {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "name", nullable = false, columnDefinition = "CHAR(50)")
+    @Column(name = "name", nullable = false, length = 50)
     private String name;
 
     @Column(name = "display_order", nullable = false)
@@ -38,7 +38,7 @@ public class Folder {
     @JoinColumn(name = "parent_id")
     private Folder parent;
 
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = false)
     private List<Folder> children = new ArrayList<>();
 
     @Builder
@@ -81,12 +81,5 @@ public class Folder {
     public void removeChild(Folder child) {
         children.remove(child);
         child.parent = null;
-    }
-
-    @PostLoad
-    private void trimNameAfterLoad() {
-        if (this.name != null) {
-            this.name = this.name.trim();
-        }
     }
 }

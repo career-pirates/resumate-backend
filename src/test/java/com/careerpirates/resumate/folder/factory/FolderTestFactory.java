@@ -21,8 +21,8 @@ public class FolderTestFactory {
 
         Folder subFolderAA = createFolder(folderA, "AA", 0);
         Folder subFolderAB = createFolder(folderA, "AB", 1);
-        Folder subFolderBA = createFolder(folderA, "BA", 0);
-        Folder subFolderBB = createFolder(folderA, "BB", 1);
+        Folder subFolderBA = createFolder(folderB, "BA", 0);
+        Folder subFolderBB = createFolder(folderB, "BB", 1);
 
         return List.of(folderA, folderB, subFolderAA, subFolderAB, subFolderBA, subFolderBB);
     }
