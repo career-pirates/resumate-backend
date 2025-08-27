@@ -5,6 +5,7 @@ import com.careerpirates.resumate.folder.application.dto.request.FolderRequest;
 import com.careerpirates.resumate.folder.application.dto.response.FolderResponse;
 import com.careerpirates.resumate.folder.application.dto.response.FolderTreeResponse;
 import com.careerpirates.resumate.folder.application.service.FolderService;
+import com.careerpirates.resumate.folder.docs.FolderControllerDocs;
 import com.careerpirates.resumate.folder.message.success.FolderSuccess;
 import com.careerpirates.resumate.global.message.success.SuccessResponse;
 import jakarta.validation.Valid;
@@ -16,7 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/folder")
 @RequiredArgsConstructor
-public class FolderController {
+public class FolderController implements FolderControllerDocs {
 
     private final FolderService folderService;
 
