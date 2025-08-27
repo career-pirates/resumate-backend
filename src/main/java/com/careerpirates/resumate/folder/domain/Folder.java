@@ -1,5 +1,7 @@
 package com.careerpirates.resumate.folder.domain;
 
+import com.careerpirates.resumate.folder.message.exception.FolderError;
+import com.careerpirates.resumate.global.message.exception.core.BusinessException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -51,14 +53,32 @@ public class Folder {
     }
 
     public void updateName(String name) {
+        if (name == null || name.isBlank()) {
+            throw new BusinessException(FolderError.FOLDER_NANE_INVALID);
+        }
         this.name = name;
     }
 
-    public void updateOrder(Integer order) {
+    public void updateOrder(int order) {
+        if (order <= 0) {
+            throw new BusinessException(FolderError.DISPLAY_ORDER_INVALID);
+        }
         this.order = order;
     }
 
     public void changeParent(Folder parent) {
+        // 동일 상위 폴더
+        if (this.parent == parent)
+            return;
+        // 자기 자신을 상위 폴더로 지정할 수 없음
+        if (this == parent)
+            throw new BusinessException(FolderError.PARENT_FOLDER_INVALID);
+        // 하위 폴더를 상위 폴더로 지정할 수 없음
+        for (Folder child : this.children) {
+            if (child == parent)
+                throw new BusinessException(FolderError.PARENT_FOLDER_INVALID);
+        }
+
         // 기존 부모에서 제거
         if (this.parent != null) {
             this.parent.children.remove(this);
@@ -66,8 +86,6 @@ public class Folder {
 
         // 새로운 부모 설정
         this.parent = parent;
-
-        // 새로운 부모에 추가
         if (parent != null) {
             parent.children.add(this);
         }
