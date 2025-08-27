@@ -4,6 +4,8 @@ import com.careerpirates.resumate.folder.application.dto.request.FolderRequest;
 import com.careerpirates.resumate.folder.application.dto.response.FolderResponse;
 import com.careerpirates.resumate.folder.domain.Folder;
 import com.careerpirates.resumate.folder.infrastructure.FolderRepository;
+import com.careerpirates.resumate.folder.message.exception.FolderError;
+import com.careerpirates.resumate.global.message.exception.core.BusinessException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -77,6 +79,8 @@ class FolderServiceTest {
 
         // when then
         assertThatThrownBy(() -> folderService.createFolder(request))
-                .isInstanceOf(RuntimeException.class);
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isInstanceOf(FolderError.class);
     }
 }

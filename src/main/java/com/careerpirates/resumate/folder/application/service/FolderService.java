@@ -4,6 +4,8 @@ import com.careerpirates.resumate.folder.application.dto.request.FolderRequest;
 import com.careerpirates.resumate.folder.application.dto.response.FolderResponse;
 import com.careerpirates.resumate.folder.domain.Folder;
 import com.careerpirates.resumate.folder.infrastructure.FolderRepository;
+import com.careerpirates.resumate.folder.message.exception.FolderError;
+import com.careerpirates.resumate.global.message.exception.core.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -36,6 +38,6 @@ public class FolderService {
             return null;
 
         return folderRepository.findById(parentId)
-                .orElseThrow(() -> new RuntimeException("TODO: Custom Exception으로 변경"));
+                .orElseThrow(() -> new BusinessException(FolderError.PARENT_FOLDER_NOT_FOUND));
     }
 }

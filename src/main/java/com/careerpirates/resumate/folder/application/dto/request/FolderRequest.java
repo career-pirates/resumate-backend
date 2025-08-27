@@ -20,6 +20,4 @@ public class FolderRequest {
     @NotNull(message = "순서는 필수입니다")
     @Min(value = 0, message = "순서는 0 이상이어야 합니다")
     private Integer order;
-
-
 }
