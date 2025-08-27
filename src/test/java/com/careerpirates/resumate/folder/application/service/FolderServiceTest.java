@@ -3,7 +3,7 @@ package com.careerpirates.resumate.folder.application.service;
 import com.careerpirates.resumate.folder.application.dto.request.FolderRequest;
 import com.careerpirates.resumate.folder.application.dto.response.FolderResponse;
 import com.careerpirates.resumate.folder.domain.Folder;
-import com.careerpirates.resumate.folder.infrasturcture.FolderRepository;
+import com.careerpirates.resumate.folder.infrastructure.FolderRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -15,7 +15,6 @@ import static com.careerpirates.resumate.folder.factory.FolderTestFactory.create
 import static com.careerpirates.resumate.folder.factory.FolderTestFactory.createFolderRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 //@ActiveProfiles("test")

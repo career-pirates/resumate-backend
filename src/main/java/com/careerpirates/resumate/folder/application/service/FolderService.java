@@ -3,7 +3,7 @@ package com.careerpirates.resumate.folder.application.service;
 import com.careerpirates.resumate.folder.application.dto.request.FolderRequest;
 import com.careerpirates.resumate.folder.application.dto.response.FolderResponse;
 import com.careerpirates.resumate.folder.domain.Folder;
-import com.careerpirates.resumate.folder.infrasturcture.FolderRepository;
+import com.careerpirates.resumate.folder.infrastructure.FolderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

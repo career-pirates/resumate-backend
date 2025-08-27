@@ -1,4 +1,4 @@
-package com.careerpirates.resumate.folder.infrasturcture;
+package com.careerpirates.resumate.folder.infrastructure;
 
 import com.careerpirates.resumate.folder.domain.Folder;
 import org.springframework.data.jpa.repository.JpaRepository;
