@@ -3,6 +3,7 @@ package com.careerpirates.resumate.folder.application.service;
 import com.careerpirates.resumate.folder.application.dto.request.FolderNameRequest;
 import com.careerpirates.resumate.folder.application.dto.request.FolderRequest;
 import com.careerpirates.resumate.folder.application.dto.response.FolderResponse;
+import com.careerpirates.resumate.folder.application.dto.response.FolderTreeResponse;
 import com.careerpirates.resumate.folder.domain.Folder;
 import com.careerpirates.resumate.folder.infrastructure.FolderRepository;
 import com.careerpirates.resumate.folder.message.exception.FolderError;
@@ -14,12 +15,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.List;
 import java.util.Optional;
 
 import static com.careerpirates.resumate.folder.factory.FolderTestFactory.createDefaultFolders;
 import static com.careerpirates.resumate.folder.factory.FolderTestFactory.createFolderRequest;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
 //@ActiveProfiles("test")
@@ -142,5 +143,23 @@ class FolderServiceTest {
         assertThat(resultAA.isPresent()).isFalse();
         Optional<Folder> resultAB = folderRepository.findByName("AB");
         assertThat(resultAB.isPresent()).isTrue();
+    }
+
+    @Test
+    @DisplayName("상위 폴더와 하위 폴더 목록을 조회합니다.")
+    void getFolders_success() {
+        // when
+        List<FolderTreeResponse> result = folderService.getFolders();
+
+        // then
+        assertThat(result).hasSize(2);
+        assertThat(result.get(0)).extracting("name").isEqualTo("A");
+        assertThat(result.get(0).getChildren())
+                .extracting("name")
+                .containsExactly("AA", "AB");
+        assertThat(result.get(1)).extracting("name").isEqualTo("B");
+        assertThat(result.get(1).getChildren())
+                .extracting("name")
+                .containsExactly("BA", "BB");
     }
 }

@@ -3,12 +3,15 @@ package com.careerpirates.resumate.folder.presentation;
 import com.careerpirates.resumate.folder.application.dto.request.FolderNameRequest;
 import com.careerpirates.resumate.folder.application.dto.request.FolderRequest;
 import com.careerpirates.resumate.folder.application.dto.response.FolderResponse;
+import com.careerpirates.resumate.folder.application.dto.response.FolderTreeResponse;
 import com.careerpirates.resumate.folder.application.service.FolderService;
 import com.careerpirates.resumate.folder.message.success.FolderSuccess;
 import com.careerpirates.resumate.global.message.success.SuccessResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/folder")
@@ -36,5 +39,11 @@ public class FolderController {
 
         folderService.deleteFolder(id);
         return SuccessResponse.of(FolderSuccess.DELETE_FOLDER);
+    }
+
+    @GetMapping
+    public SuccessResponse<List<FolderTreeResponse>> getFolders() {
+        List<FolderTreeResponse> response = folderService.getFolders();
+        return SuccessResponse.of(FolderSuccess.GET_FOLDERS, response);
     }
 }

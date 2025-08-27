@@ -3,6 +3,7 @@ package com.careerpirates.resumate.folder.application.service;
 import com.careerpirates.resumate.folder.application.dto.request.FolderNameRequest;
 import com.careerpirates.resumate.folder.application.dto.request.FolderRequest;
 import com.careerpirates.resumate.folder.application.dto.response.FolderResponse;
+import com.careerpirates.resumate.folder.application.dto.response.FolderTreeResponse;
 import com.careerpirates.resumate.folder.domain.Folder;
 import com.careerpirates.resumate.folder.infrastructure.FolderRepository;
 import com.careerpirates.resumate.folder.message.exception.FolderError;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Iterator;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -61,6 +63,15 @@ public class FolderService {
 
         return folderRepository.findById(parentId)
                 .orElseThrow(() -> new BusinessException(FolderError.PARENT_FOLDER_NOT_FOUND));
+    }
+
+    @Transactional
+    public List<FolderTreeResponse> getFolders() {
+        List<Folder> parentFolders = folderRepository.findParentFolders();
+
+        return parentFolders.stream()
+                .map(FolderTreeResponse::of)
+                .toList();
     }
 
     private void clearFolderRecursively(Folder folder) {
