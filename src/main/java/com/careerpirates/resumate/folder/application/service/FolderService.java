@@ -1,5 +1,6 @@
 package com.careerpirates.resumate.folder.application.service;
 
+import com.careerpirates.resumate.folder.application.dto.request.FolderNameRequest;
 import com.careerpirates.resumate.folder.application.dto.request.FolderRequest;
 import com.careerpirates.resumate.folder.application.dto.response.FolderResponse;
 import com.careerpirates.resumate.folder.domain.Folder;
@@ -28,6 +29,17 @@ public class FolderService {
                 .parent(parent)
                 .build();
 
+        return FolderResponse.of(
+                folderRepository.save(folder)
+        );
+    }
+
+    @Transactional
+    public FolderResponse updateFolderName(Long id, FolderNameRequest request) {
+        Folder folder = folderRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(FolderError.FOLDER_NOT_FOUND));
+
+        folder.updateName(request.name());
         return FolderResponse.of(
                 folderRepository.save(folder)
         );

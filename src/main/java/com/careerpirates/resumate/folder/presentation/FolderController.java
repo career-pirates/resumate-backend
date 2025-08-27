@@ -1,5 +1,6 @@
 package com.careerpirates.resumate.folder.presentation;
 
+import com.careerpirates.resumate.folder.application.dto.request.FolderNameRequest;
 import com.careerpirates.resumate.folder.application.dto.request.FolderRequest;
 import com.careerpirates.resumate.folder.application.dto.response.FolderResponse;
 import com.careerpirates.resumate.folder.application.service.FolderService;
@@ -7,10 +8,7 @@ import com.careerpirates.resumate.folder.message.success.FolderSuccess;
 import com.careerpirates.resumate.global.message.success.SuccessResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/folder")
@@ -24,5 +22,12 @@ public class FolderController {
 
         FolderResponse response = folderService.createFolder(request);
         return SuccessResponse.of(FolderSuccess.FOLDER_CREATE_SUCCESS, response);
+    }
+
+    @PatchMapping("/{id}")
+    public SuccessResponse<FolderResponse> updateFolderName(@PathVariable Long id,
+                                                            @RequestBody @Valid FolderNameRequest request) {
+        FolderResponse response = folderService.updateFolderName(id, request);
+        return SuccessResponse.of(FolderSuccess.FOLDER_UPDATE_NAME_SUCCESS, response);
     }
 }

@@ -1,5 +1,6 @@
 package com.careerpirates.resumate.folder.application.service;
 
+import com.careerpirates.resumate.folder.application.dto.request.FolderNameRequest;
 import com.careerpirates.resumate.folder.application.dto.request.FolderRequest;
 import com.careerpirates.resumate.folder.application.dto.response.FolderResponse;
 import com.careerpirates.resumate.folder.domain.Folder;
@@ -82,5 +83,24 @@ class FolderServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isInstanceOf(FolderError.class);
+    }
+
+    @Test
+    @DisplayName("폴더 이름을 수정합니다.")
+    void updateFolderName() {
+        // given
+        Folder folder = folderRepository.findParentFolders().get(0);
+
+        // when
+        FolderResponse response = folderService.updateFolderName(
+                folder.getId(),
+                FolderNameRequest.builder().name("새이름").build()
+        );
+
+        // then
+        Folder found = folderRepository.findById(response.getId()).get();
+        assertThat(found).extracting("name")
+                .isEqualTo(response.getName())
+                .isEqualTo("새이름");
     }
 }

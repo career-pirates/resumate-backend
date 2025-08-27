@@ -9,7 +9,8 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum FolderSuccess implements SuccessCode {
 
-    FOLDER_CREATE_SUCCESS(HttpStatus.CREATED, "폴더 추가에 성공하였습니다");
+    FOLDER_CREATE_SUCCESS(HttpStatus.CREATED, "폴더 추가에 성공하였습니다"),
+    FOLDER_UPDATE_NAME_SUCCESS(HttpStatus.OK, "폴더 이름 변경에 성공하였습니다");
 
     private final HttpStatus status;
     private final String message;
