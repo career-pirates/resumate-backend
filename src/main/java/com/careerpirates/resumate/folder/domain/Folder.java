@@ -54,13 +54,13 @@ public class Folder {
 
     public void updateName(String name) {
         if (name == null || name.isBlank()) {
-            throw new BusinessException(FolderError.FOLDER_NANE_INVALID);
+            throw new BusinessException(FolderError.FOLDER_NAME_INVALID);
         }
         this.name = name;
     }
 
     public void updateOrder(int order) {
-        if (order <= 0) {
+        if (order < 0) {
             throw new BusinessException(FolderError.DISPLAY_ORDER_INVALID);
         }
         this.order = order;
