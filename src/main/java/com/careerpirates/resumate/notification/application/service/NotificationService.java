@@ -19,7 +19,7 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
 
-    private NotificationListResponse getNotifications(Long cursorId, int size) {
+    public NotificationListResponse getNotifications(Long cursorId, int size) {
         Pageable pageable = PageRequest.of(0, size + 1);
         List<Notification> notifications;
 
@@ -31,7 +31,7 @@ public class NotificationService {
         // 실제 반환 리스트는 size 개만 반환
         List<Notification> pageList = notifications.size() > size ? notifications.subList(0, size) : notifications;
 
-        boolean hasNext = notifications.size() <= size;
+        boolean hasNext = notifications.size() > size;
         Long nextCursor = hasNext ? pageList.get(pageList.size() - 1).getId() : null;
 
         return NotificationListResponse.builder()

@@ -3,6 +3,7 @@ package com.careerpirates.resumate.notification.domain;
 import com.careerpirates.resumate.global.domain.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLDelete;
@@ -35,6 +36,15 @@ public class Notification extends BaseEntity {
 
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted;
+
+    @Builder
+    public Notification(String title, String message, String url) {
+        this.title = title;
+        this.message = message;
+        this.url = url;
+        this.isRead = false;
+        this.isDeleted = false;
+    }
 
     public void markAsRead() {
         isRead = true;
