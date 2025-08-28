@@ -1,6 +1,7 @@
 package com.careerpirates.resumate.folder.application.service;
 
 import com.careerpirates.resumate.folder.application.dto.request.FolderNameRequest;
+import com.careerpirates.resumate.folder.application.dto.request.FolderOrderRequest;
 import com.careerpirates.resumate.folder.application.dto.request.FolderRequest;
 import com.careerpirates.resumate.folder.application.dto.response.FolderResponse;
 import com.careerpirates.resumate.folder.application.dto.response.FolderTreeResponse;
@@ -161,5 +162,41 @@ class FolderServiceTest {
         assertThat(result.get(1).getChildren())
                 .extracting("name")
                 .containsExactly("BA", "BB");
+    }
+
+    @Test
+    @DisplayName("상위 폴더 사이의 표시 순서를 설정합니다.")
+    void setFolderOrder_success() {
+        // given
+        Folder folderA = folderRepository.findByName("A").get();
+        Folder folderB = folderRepository.findByName("B").get();
+
+        List<FolderOrderRequest> request = List.of(
+                FolderOrderRequest.builder().id(folderA.getId()).order(2).build(),
+                FolderOrderRequest.builder().id(folderB.getId()).order(1).build()
+        );
+
+        // when
+        folderService.setFolderOrder(request);
+
+        // then
+        assertThat(folderRepository.findParentFolders())
+                .extracting("name")
+                .containsExactly("B", "A");
+    }
+
+    @Test
+    @DisplayName("상위 폴더 순서 설정시 존재하지 않으면 예외 발생합니다.")
+    void setFolderOrder_notFound() {
+        // given
+        List<FolderOrderRequest> request = List.of(
+                FolderOrderRequest.builder().id(9999L).order(1).build()
+        );
+
+        // when then
+        assertThatThrownBy(() -> folderService.setFolderOrder(request))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isInstanceOf(FolderError.class);
     }
 }

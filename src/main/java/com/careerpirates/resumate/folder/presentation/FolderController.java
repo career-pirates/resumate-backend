@@ -1,6 +1,7 @@
 package com.careerpirates.resumate.folder.presentation;
 
 import com.careerpirates.resumate.folder.application.dto.request.FolderNameRequest;
+import com.careerpirates.resumate.folder.application.dto.request.FolderOrderRequest;
 import com.careerpirates.resumate.folder.application.dto.request.FolderRequest;
 import com.careerpirates.resumate.folder.application.dto.response.FolderResponse;
 import com.careerpirates.resumate.folder.application.dto.response.FolderTreeResponse;
@@ -46,5 +47,11 @@ public class FolderController implements FolderControllerDocs {
     public SuccessResponse<List<FolderTreeResponse>> getFolders() {
         List<FolderTreeResponse> response = folderService.getFolders();
         return SuccessResponse.of(FolderSuccess.GET_FOLDERS, response);
+    }
+
+    @PatchMapping("/tree")
+    public SuccessResponse<List<FolderTreeResponse>> setFolderOrder(@RequestBody @Valid List<FolderOrderRequest> request) {
+        List<FolderTreeResponse> response = folderService.setFolderOrder(request);
+        return SuccessResponse.of(FolderSuccess.SET_FOLDER_ORDER, response);
     }
 }

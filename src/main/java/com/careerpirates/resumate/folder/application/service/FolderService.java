@@ -1,6 +1,7 @@
 package com.careerpirates.resumate.folder.application.service;
 
 import com.careerpirates.resumate.folder.application.dto.request.FolderNameRequest;
+import com.careerpirates.resumate.folder.application.dto.request.FolderOrderRequest;
 import com.careerpirates.resumate.folder.application.dto.request.FolderRequest;
 import com.careerpirates.resumate.folder.application.dto.response.FolderResponse;
 import com.careerpirates.resumate.folder.application.dto.response.FolderTreeResponse;
@@ -15,6 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -57,21 +62,46 @@ public class FolderService {
         clearFolderRecursively(folder);
     }
 
-    private Folder resolveParentFolder(Long parentId) {
-        if (parentId == null)
-            return null;
-
-        return folderRepository.findById(parentId)
-                .orElseThrow(() -> new BusinessException(FolderError.PARENT_FOLDER_NOT_FOUND));
-    }
-
-    @Transactional
+    @Transactional(readOnly = true)
     public List<FolderTreeResponse> getFolders() {
         List<Folder> parentFolders = folderRepository.findParentFolders();
 
         return parentFolders.stream()
                 .map(FolderTreeResponse::of)
                 .toList();
+    }
+
+    @Transactional
+    public List<FolderTreeResponse> setFolderOrder(List<FolderOrderRequest> request) {
+        List<Folder> folders = folderRepository.findParentFolders();
+        Map<Long, Folder> folderMap = folders.stream().collect(Collectors.toMap(Folder::getId, Function.identity()));
+
+        // 표시 순서 설정
+        for (FolderOrderRequest r : request) {
+            Folder folder = folderMap.get(r.id());
+            if (folder == null)
+                throw new BusinessException(FolderError.PARENT_FOLDER_NOT_FOUND);
+
+            folder.updateOrder(r.order());
+        }
+
+        List<Folder> updatedFolders = folderMap.values().stream()
+                .sorted(Comparator.comparingInt(Folder::getOrder))
+                .toList();
+
+        folderRepository.saveAll(updatedFolders);
+
+        return updatedFolders.stream()
+                .map(FolderTreeResponse::of)
+                .toList();
+    }
+
+    private Folder resolveParentFolder(Long parentId) {
+        if (parentId == null)
+            return null;
+
+        return folderRepository.findById(parentId)
+                .orElseThrow(() -> new BusinessException(FolderError.PARENT_FOLDER_NOT_FOUND));
     }
 
     private void clearFolderRecursively(Folder folder) {
