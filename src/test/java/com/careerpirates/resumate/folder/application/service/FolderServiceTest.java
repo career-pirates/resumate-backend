@@ -86,7 +86,7 @@ class FolderServiceTest {
         assertThatThrownBy(() -> folderService.createFolder(request))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isInstanceOf(FolderError.class);
+                .isEqualTo(FolderError.PARENT_FOLDER_NOT_FOUND);
     }
 
     @Test
@@ -197,7 +197,7 @@ class FolderServiceTest {
         assertThatThrownBy(() -> folderService.setFolderOrder(request))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isInstanceOf(FolderError.class);
+                .isEqualTo(FolderError.PARENT_FOLDER_NOT_FOUND);
     }
 
     @Test
@@ -230,7 +230,7 @@ class FolderServiceTest {
     }
 
     @Test
-    @DisplayName("폴더 3 중첩 시도시 예외가 발생합니다.")
+    @DisplayName("폴더를 3 중첩 시도시 예외가 발생합니다.")
     void setSubFolderTree_maxNested() {
         // given
         Folder folderA = folderRepository.findByName("A").get();
@@ -244,7 +244,7 @@ class FolderServiceTest {
         assertThatThrownBy(() -> folderService.setSubFolderTree(folderA.getId(), request))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isInstanceOf(FolderError.class);
+                .isEqualTo(FolderError.MAX_NESTING_DEPTH_EXCEEDED);
     }
 
     @Test
@@ -261,7 +261,7 @@ class FolderServiceTest {
         assertThatThrownBy(() -> folderService.setSubFolderTree(folderA.getId(), request))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isInstanceOf(FolderError.class);
+                .isEqualTo(FolderError.PARENT_FOLDER_INVALID);
     }
 
     @Test
@@ -279,7 +279,7 @@ class FolderServiceTest {
         assertThatThrownBy(() -> folderService.setSubFolderTree(folderAB.getId(), request))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isInstanceOf(FolderError.class);
+                .isEqualTo(FolderError.PARENT_FOLDER_INVALID);
     }
 
     private List<FolderTreeResponse> childrenOf(List<FolderTreeResponse> folders, String name) {

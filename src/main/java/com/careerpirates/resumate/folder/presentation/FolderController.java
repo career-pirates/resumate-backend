@@ -59,6 +59,6 @@ public class FolderController implements FolderControllerDocs {
     public SuccessResponse<List<FolderTreeResponse>> setSubFolderTree(@PathVariable Long id,
                                                                       @RequestBody @Valid List<FolderOrderRequest> request) {
         List<FolderTreeResponse> response = folderService.setSubFolderTree(id, request);
-        return SuccessResponse.of(FolderSuccess.SET_FOLDER_ORDER, response);
+        return SuccessResponse.of(FolderSuccess.SET_SUB_FOLDER_TREE, response);
     }
 }

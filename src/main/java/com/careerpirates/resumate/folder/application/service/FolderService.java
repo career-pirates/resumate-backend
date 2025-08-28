@@ -105,7 +105,8 @@ public class FolderService {
         // 수정할 하위 폴더 목록 가져오기
         List<Long> idList = request.stream().map(FolderOrderRequest::id).toList();
         List<Folder> folders = folderRepository.findByIdIn(idList);
-        Map<Long, Folder> folderMap = folders.stream().collect(Collectors.toMap(Folder::getId, Function.identity()));
+        Map<Long, Folder> folderMap = folders.stream()
+                .collect(Collectors.toMap(Folder::getId, Function.identity(), (a, b) -> b));
 
         // 상위 폴더 및 순서 변경
         for (FolderOrderRequest r : request) {
@@ -113,7 +114,12 @@ public class FolderService {
 
             if (subFolder == null)
                 throw new BusinessException(FolderError.FOLDER_NOT_FOUND);
-            if (!subFolder.getChildren().isEmpty()) // 폴더 3 중첩 시도시 예외 발생
+            if (subFolder.getId().equals(parentId))     // 자기 자신을 상위로 지정 금지
+                throw new BusinessException(FolderError.PARENT_FOLDER_INVALID);
+            if (subFolder.getChildren().stream()        // 자신의 직계 자식을 상위로 지정 금지 (순환)
+                    .anyMatch(ch -> ch.getId().equals(parentFolder.getId())))
+                throw new BusinessException(FolderError.PARENT_FOLDER_INVALID);
+            if (!subFolder.getChildren().isEmpty())     // 폴더를 3 중첩 시도시 예외 발생
                 throw new BusinessException(FolderError.MAX_NESTING_DEPTH_EXCEEDED);
 
             subFolder.changeParent(parentFolder);
