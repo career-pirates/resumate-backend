@@ -12,5 +12,7 @@ public interface FolderRepository extends JpaRepository<Folder, Long> {
     @Query("SELECT fd from Folder fd WHERE fd.parent IS NULL ORDER BY fd.order")
     List<Folder> findParentFolders();
 
+    List<Folder> findByIdIn(List<Long> ids);
+
     Optional<Folder> findByName(String name);
 }

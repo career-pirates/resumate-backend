@@ -13,7 +13,8 @@ public enum FolderError implements ErrorCode {
     PARENT_FOLDER_INVALID("자기 자신이나 자식을 상위 폴더로 설정할 수 없습니다.", HttpStatus.BAD_REQUEST, "FD_002"),
     FOLDER_NAME_INVALID("폴더 이름은 빈 문자열이거나, 50자를 초과할 수 없습니다.", HttpStatus.BAD_REQUEST, "FD_003"),
     DISPLAY_ORDER_INVALID("폴더 표시 순서는 0 미만일 수 없습니다.", HttpStatus.BAD_REQUEST, "FD_004"),
-    FOLDER_NOT_FOUND("폴더를 찾을 수 없습니다.", HttpStatus.NOT_FOUND, "FD_005");
+    FOLDER_NOT_FOUND("폴더를 찾을 수 없습니다.", HttpStatus.NOT_FOUND, "FD_005"),
+    MAX_NESTING_DEPTH_EXCEEDED("폴더는 최대 2단계까지만 중첩할 수 있습니다.", HttpStatus.BAD_REQUEST, "FD_006");
 
     private final String message;
     private final HttpStatus status;

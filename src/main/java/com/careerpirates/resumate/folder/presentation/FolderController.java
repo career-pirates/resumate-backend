@@ -54,4 +54,11 @@ public class FolderController implements FolderControllerDocs {
         List<FolderTreeResponse> response = folderService.setFolderOrder(request);
         return SuccessResponse.of(FolderSuccess.SET_FOLDER_ORDER, response);
     }
+
+    @PatchMapping("/{id}/tree")
+    public SuccessResponse<List<FolderTreeResponse>> setSubFolderTree(@PathVariable Long id,
+                                                                      @RequestBody @Valid List<FolderOrderRequest> request) {
+        List<FolderTreeResponse> response = folderService.setSubFolderTree(id, request);
+        return SuccessResponse.of(FolderSuccess.SET_FOLDER_ORDER, response);
+    }
 }

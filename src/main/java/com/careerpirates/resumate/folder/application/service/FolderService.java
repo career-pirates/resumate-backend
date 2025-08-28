@@ -85,13 +85,49 @@ public class FolderService {
             folder.updateOrder(r.order());
         }
 
+        // 저장
         List<Folder> updatedFolders = folderMap.values().stream()
                 .sorted(Comparator.comparingInt(Folder::getOrder))
                 .toList();
-
         folderRepository.saveAll(updatedFolders);
 
         return updatedFolders.stream()
+                .map(FolderTreeResponse::of)
+                .toList();
+    }
+
+    @Transactional
+    public List<FolderTreeResponse> setSubFolderTree(Long parentId, List<FolderOrderRequest> request) {
+        // 상위 폴더 가져오기
+        Folder parentFolder = folderRepository.findById(parentId)
+                .orElseThrow(() -> new BusinessException(FolderError.FOLDER_NOT_FOUND));
+
+        // 수정할 하위 폴더 목록 가져오기
+        List<Long> idList = request.stream().map(FolderOrderRequest::id).toList();
+        List<Folder> folders = folderRepository.findByIdIn(idList);
+        Map<Long, Folder> folderMap = folders.stream().collect(Collectors.toMap(Folder::getId, Function.identity()));
+
+        // 상위 폴더 및 순서 변경
+        for (FolderOrderRequest r : request) {
+            Folder subFolder = folderMap.get(r.id());
+
+            if (subFolder == null)
+                throw new BusinessException(FolderError.FOLDER_NOT_FOUND);
+            if (!subFolder.getChildren().isEmpty()) // 폴더 3 중첩 시도시 예외 발생
+                throw new BusinessException(FolderError.MAX_NESTING_DEPTH_EXCEEDED);
+
+            subFolder.changeParent(parentFolder);
+            subFolder.updateOrder(r.order());
+        }
+
+        // 저장
+        List<Folder> updatedFolders = folderMap.values().stream()
+                .sorted(Comparator.comparingInt(Folder::getOrder))
+                .toList();
+        folderRepository.saveAll(updatedFolders);
+
+        List<Folder> parentFolders = folderRepository.findParentFolders();
+        return parentFolders.stream()
                 .map(FolderTreeResponse::of)
                 .toList();
     }

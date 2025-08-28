@@ -84,17 +84,6 @@ public class Folder extends BaseEntity {
         }
     }
 
-    public void addChild(Folder child) {
-        if (child == null) return;
-        if (child.parent != null) {
-            child.parent.removeChild(child);
-        }
-        if (!children.contains(child)) {
-            children.add(child);
-        }
-        child.parent = this;
-    }
-
     public void removeChild(Folder child) {
         if (child != null && children.remove(child)) {
             child.parent = null;
