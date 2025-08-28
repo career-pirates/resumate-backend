@@ -66,4 +66,15 @@ public interface FolderControllerDocs {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
     })
     SuccessResponse<List<FolderTreeResponse>> setFolderOrder(@RequestBody @Valid List<FolderOrderRequest> request);
+
+    @Operation(method = "PATCH", summary = "하위 폴더 설정", description = "어느 상위 폴더 아래의 하위 폴더 목록을 설정하고, 순서를 저장합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "하위 폴더 설정에 성공하였습니다."),
+            @ApiResponse(responseCode = "400", description = "폴더는 최대 2단계까지만 중첩할 수 있습니다.<br>자기 자신은 상위 폴더로 설정할 수 없습니다.<br>자신의 하위 폴더는 상위 폴더로 설정할 수 없습니다.",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "폴더를 찾을 수 없습니다.",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    })
+    SuccessResponse<List<FolderTreeResponse>> setSubFolderTree(@PathVariable Long id,
+                                                               @RequestBody @Valid List<FolderOrderRequest> request);
 }
