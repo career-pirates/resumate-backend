@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 
 @Getter
@@ -30,6 +31,7 @@ public class FolderTreeResponse {
                 .parentId(parent == null ? null : parent.getId())
                 .parentName(parent == null ? null : parent.getName())
                 .children(folder.getChildren().stream()
+                        .sorted(Comparator.comparingInt(Folder::getOrder))
                         .map(FolderTreeResponse::of)
                         .toList()
                 )
