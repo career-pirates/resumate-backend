@@ -24,7 +24,7 @@ public class NotificationService {
         List<Notification> notifications;
 
         if (cursorId == null)
-            notifications = notificationRepository.findALLByOrderByIdDesc(pageable);
+            notifications = notificationRepository.findAllByOrderByIdDesc(pageable);
         else
             notifications = notificationRepository.findByIdLessThanOrderByIdDesc(cursorId, pageable);
 

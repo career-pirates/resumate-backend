@@ -22,7 +22,7 @@ public class Notification extends BaseEntity {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "name", nullable = false, length = 50)
+    @Column(name = "title", nullable = false, length = 50)
     private String title;
 
     @Column(name = "message", nullable = false, length = 255)
@@ -32,10 +32,10 @@ public class Notification extends BaseEntity {
     private String url;
 
     @Column(name = "is_read", nullable = false)
-    private Boolean isRead;
+    private boolean isRead;
 
     @Column(name = "is_deleted", nullable = false)
-    private Boolean isDeleted;
+    private boolean isDeleted;
 
     @Builder
     public Notification(String title, String message, String url) {

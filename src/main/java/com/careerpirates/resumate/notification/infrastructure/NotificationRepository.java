@@ -12,5 +12,5 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     List<Notification> findByIdLessThanOrderByIdDesc(Long cursorId, Pageable pageable);
 
     //첫 페이지 조회
-    List<Notification> findALLByOrderByIdDesc(Pageable pageable);
+    List<Notification> findAllByOrderByIdDesc(Pageable pageable);
 }
