@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@Tag(name = "알림", description = "💬 알림 조회")
+@Tag(name = "알림", description = "💬 알림 API - 과거 알림 조회")
 public interface NotificationControllerDocs {
 
     @Operation(method = "GET", summary = "알림 목록 조회", description = "사용자의 알림 목록을 조회합니다.")
