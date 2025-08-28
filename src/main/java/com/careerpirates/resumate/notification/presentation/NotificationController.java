@@ -3,6 +3,7 @@ package com.careerpirates.resumate.notification.presentation;
 import com.careerpirates.resumate.global.message.success.SuccessResponse;
 import com.careerpirates.resumate.notification.application.dto.response.NotificationListResponse;
 import com.careerpirates.resumate.notification.application.service.NotificationService;
+import com.careerpirates.resumate.notification.docs.NotificationControllerDocs;
 import com.careerpirates.resumate.notification.message.success.NotificationSuccess;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/notification")
 @RequiredArgsConstructor
-public class NotificationController {
+public class NotificationController implements NotificationControllerDocs {
 
     private final NotificationService notificationService;
 
