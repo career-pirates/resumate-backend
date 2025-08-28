@@ -1,6 +1,7 @@
 package com.careerpirates.resumate.folder.domain;
 
 import com.careerpirates.resumate.folder.message.exception.FolderError;
+import com.careerpirates.resumate.global.domain.BaseEntity;
 import com.careerpirates.resumate.global.message.exception.core.BusinessException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -16,7 +17,7 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "folder")
-public class Folder {
+public class Folder extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,12 +29,6 @@ public class Folder {
 
     @Column(name = "display_order", nullable = false)
     private Integer order;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "modified_at", nullable = false)
-    private LocalDateTime modifiedAt;
 
     // 자기 참조 연관관계
     @ManyToOne(fetch = FetchType.LAZY)
@@ -48,8 +43,6 @@ public class Folder {
         this.parent = parent;
         this.name = name;
         this.order = order;
-        this.createdAt = LocalDateTime.now();
-        this.modifiedAt = LocalDateTime.now();
     }
 
     public void updateName(String name) {

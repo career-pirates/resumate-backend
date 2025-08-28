@@ -23,4 +23,9 @@ public abstract class BaseEntity {
 	@LastModifiedDate
 	@Column(nullable = false)
 	private LocalDateTime modifiedAt;
+
+	// 상속 받은 클래스에서 메뉴얼로 수정 일시를 업데이트
+	protected void updateModifiedAt() {
+		this.modifiedAt = LocalDateTime.now();
+	}
 }
