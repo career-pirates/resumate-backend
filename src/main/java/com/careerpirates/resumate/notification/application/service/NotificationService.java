@@ -48,7 +48,7 @@ public class NotificationService {
                         .title(nt.getTitle())
                         .message(nt.getMessage())
                         .url(nt.getUrl())
-                        .isRead(nt.getIsRead())
+                        .isRead(nt.isRead())
                         .build()
                 )
                 .toList();
