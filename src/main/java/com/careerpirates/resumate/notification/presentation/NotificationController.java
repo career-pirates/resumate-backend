@@ -6,10 +6,7 @@ import com.careerpirates.resumate.notification.application.service.NotificationS
 import com.careerpirates.resumate.notification.docs.NotificationControllerDocs;
 import com.careerpirates.resumate.notification.message.success.NotificationSuccess;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/notification")
@@ -17,6 +14,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class NotificationController implements NotificationControllerDocs {
 
     private final NotificationService notificationService;
+
+    @PatchMapping("/{id}")
+    public SuccessResponse<?> markAsRead(@PathVariable Long id) {
+
+        notificationService.markAsRead(id);
+        return SuccessResponse.of(NotificationSuccess.MARK_AS_READ);
+    }
 
     @GetMapping
     public SuccessResponse<NotificationListResponse> getNotifications(@RequestParam(required = false) Long cursorId) {

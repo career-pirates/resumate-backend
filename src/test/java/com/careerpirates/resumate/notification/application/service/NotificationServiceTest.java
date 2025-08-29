@@ -31,6 +31,21 @@ class NotificationServiceTest {
         notificationRepository.deleteAllInBatch();
     }
 
+    @Test
+    @DisplayName("알림을 읽음 처리합니다.")
+    void markAsRead_success() {
+        // given
+        Notification n1 = notificationRepository.save(createNotification("알림1"));
+
+        // when
+        notificationService.markAsRead(n1.getId());
+
+        // then
+        Notification found = notificationRepository.findById(n1.getId()).get();
+        assertThat(found).isNotNull()
+                .extracting("isRead").isEqualTo(true);
+    }
+
     @ParameterizedTest
     @DisplayName("알림 목록을 조회합니다.")
     @CsvSource({
