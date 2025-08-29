@@ -31,6 +31,14 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
+    @Transactional
+    public void deleteNotification(Long id) {
+        Notification notification = notificationRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(NotificationError.NOTIFICATION_NOT_FOUND));
+
+        notificationRepository.delete(notification);
+    }
+
     @Transactional(readOnly = true)
     public NotificationListResponse getNotifications(Long cursorId, int size) {
         Pageable pageable = PageRequest.of(0, size + 1);

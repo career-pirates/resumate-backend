@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.careerpirates.resumate.notification.factory.NotificationTestFactory.createNotification;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,6 +45,20 @@ class NotificationServiceTest {
         Notification found = notificationRepository.findById(n1.getId()).get();
         assertThat(found).isNotNull()
                 .extracting("isRead").isEqualTo(true);
+    }
+
+    @Test
+    @DisplayName("알림을 삭제합니다.")
+    void deleteNotification_success() {
+        // given
+        Notification n1 = notificationRepository.save(createNotification("알림1"));
+
+        // when
+        notificationService.deleteNotification(n1.getId());
+
+        // then
+        Optional<Notification> found = notificationRepository.findById(n1.getId());
+        assertThat(found.isPresent()).isFalse();
     }
 
     @ParameterizedTest

@@ -22,6 +22,13 @@ public class NotificationController implements NotificationControllerDocs {
         return SuccessResponse.of(NotificationSuccess.MARK_AS_READ);
     }
 
+    @DeleteMapping("/{id}")
+    public SuccessResponse<?> deleteNotification(@PathVariable Long id) {
+
+        notificationService.deleteNotification(id);
+        return SuccessResponse.of(NotificationSuccess.DELETE_NOTIFICATION);
+    }
+
     @GetMapping
     public SuccessResponse<NotificationListResponse> getNotifications(@RequestParam(required = false) Long cursorId) {
 
