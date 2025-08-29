@@ -1,6 +1,7 @@
 package com.careerpirates.resumate.folder.application.service;
 
 import com.careerpirates.resumate.folder.application.dto.request.FolderNameRequest;
+import com.careerpirates.resumate.folder.application.dto.request.FolderOrderRequest;
 import com.careerpirates.resumate.folder.application.dto.request.FolderRequest;
 import com.careerpirates.resumate.folder.application.dto.response.FolderResponse;
 import com.careerpirates.resumate.folder.application.dto.response.FolderTreeResponse;
@@ -85,7 +86,7 @@ class FolderServiceTest {
         assertThatThrownBy(() -> folderService.createFolder(request))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isInstanceOf(FolderError.class);
+                .isEqualTo(FolderError.PARENT_FOLDER_NOT_FOUND);
     }
 
     @Test
@@ -161,5 +162,131 @@ class FolderServiceTest {
         assertThat(result.get(1).getChildren())
                 .extracting("name")
                 .containsExactly("BA", "BB");
+    }
+
+    @Test
+    @DisplayName("상위 폴더 사이의 표시 순서를 설정합니다.")
+    void setFolderOrder_success() {
+        // given
+        Folder folderA = folderRepository.findByName("A").get();
+        Folder folderB = folderRepository.findByName("B").get();
+
+        List<FolderOrderRequest> request = List.of(
+                FolderOrderRequest.builder().id(folderA.getId()).order(2).build(),
+                FolderOrderRequest.builder().id(folderB.getId()).order(1).build()
+        );
+
+        // when
+        folderService.setFolderOrder(request);
+
+        // then
+        assertThat(folderRepository.findParentFolders())
+                .extracting("name")
+                .containsExactly("B", "A");
+    }
+
+    @Test
+    @DisplayName("상위 폴더 순서 설정시 존재하지 않으면 예외 발생합니다.")
+    void setFolderOrder_notFound() {
+        // given
+        List<FolderOrderRequest> request = List.of(
+                FolderOrderRequest.builder().id(9999L).order(1).build()
+        );
+
+        // when then
+        assertThatThrownBy(() -> folderService.setFolderOrder(request))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(FolderError.PARENT_FOLDER_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("폴더의 상위 폴더를 변경합니다.")
+    void setSubFolderTree_success() {
+        // given
+        Folder folderA = folderRepository.findByName("A").get();
+        Folder folderAA = folderRepository.findByName("AA").get();
+        Folder folderAB = folderRepository.findByName("AB").get();
+        Folder folderBA = folderRepository.findByName("BA").get();
+
+        List<FolderOrderRequest> request = List.of(
+                FolderOrderRequest.builder().id(folderAA.getId()).order(2).build(),
+                FolderOrderRequest.builder().id(folderAB.getId()).order(3).build(),
+                FolderOrderRequest.builder().id(folderBA.getId()).order(1).build()
+        );
+
+        // when
+        folderService.setSubFolderTree(folderA.getId(), request);
+
+        // then
+        List<FolderTreeResponse> foundFolders = folderService.getFolders();
+        assertThat(childrenOf(foundFolders, "A"))
+                .extracting("name")
+                .containsExactly("BA", "AA", "AB");
+
+        assertThat(childrenOf(foundFolders, "B"))
+                .extracting("name")
+                .containsExactly("BB");
+    }
+
+    @Test
+    @DisplayName("폴더를 3 중첩 시도시 예외가 발생합니다.")
+    void setSubFolderTree_maxNested() {
+        // given
+        Folder folderA = folderRepository.findByName("A").get();
+        Folder folderB = folderRepository.findByName("B").get();
+
+        List<FolderOrderRequest> request = List.of(
+                FolderOrderRequest.builder().id(folderB.getId()).order(1).build()
+        );
+
+        // when then
+        assertThatThrownBy(() -> folderService.setSubFolderTree(folderA.getId(), request))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(FolderError.MAX_NESTING_DEPTH_EXCEEDED);
+    }
+
+    @Test
+    @DisplayName("자기 자신을 상위 폴더로 선택시 예외가 발생합니다.")
+    void setSubFolderTree_selfNested() {
+        // given
+        Folder folderA = folderRepository.findByName("A").get();
+
+        List<FolderOrderRequest> request = List.of(
+                FolderOrderRequest.builder().id(folderA.getId()).order(1).build()
+        );
+
+        // when then
+        assertThatThrownBy(() -> folderService.setSubFolderTree(folderA.getId(), request))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(FolderError.PARENT_FOLDER_INVALID);
+    }
+
+    @Test
+    @DisplayName("자신의 하위폴더를 상위 폴더로 선택시 예외가 발생합니다.")
+    void setSubFolderTree_nestedCycle() {
+        // given
+        Folder folderA = folderRepository.findByName("A").get();
+        Folder folderAB = folderRepository.findByName("AB").get();
+
+        List<FolderOrderRequest> request = List.of(
+                FolderOrderRequest.builder().id(folderA.getId()).order(1).build()
+        );
+
+        // when then
+        assertThatThrownBy(() -> folderService.setSubFolderTree(folderAB.getId(), request))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(FolderError.PARENT_FOLDER_INVALID);
+    }
+
+    private List<FolderTreeResponse> childrenOf(List<FolderTreeResponse> folders, String name) {
+        return folders.stream()
+                .filter(f -> f.getName().equals(name))
+                .findFirst()
+                .map(FolderTreeResponse::getChildren)
+                .orElseThrow();
     }
 }
