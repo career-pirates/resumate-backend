@@ -50,7 +50,7 @@ public class Review extends BaseEntity {
     @Column(name = "is_deleted", nullable = false)
     private boolean isDeleted;
 
-    @Column(name = "deleted_at",nullable = false)
+    @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
     @Builder
