@@ -29,6 +29,9 @@ public class Review extends BaseEntity {
     @Column(name = "title", nullable = false, length = 100)
     private String title;
 
+    @Column(name = "description", nullable = false, length = 200)
+    private String description;
+
     @Column(name = "positives", length = 500)
     private String positives;
 
@@ -54,16 +57,18 @@ public class Review extends BaseEntity {
     private LocalDateTime deletedAt;
 
     @Builder
-    public Review(Folder folder, String title, String positives, String improvements, String learnings,
-                  String aspirations, boolean isCompleted, LocalDate reviewDate) {
+    public Review(Folder folder, String title, String description, String positives, String improvements,
+                  String learnings, String aspirations, boolean isCompleted, LocalDate reviewDate) {
         this.folder = folder;
         this.title = title;
+        this.description = description;
         this.positives = positives;
         this.improvements = improvements;
         this.learnings = learnings;
         this.aspirations = aspirations;
         this.isCompleted = isCompleted;
         this.reviewDate = reviewDate;
+        isDeleted = false;
     }
 
     public void markAsCompleted() {
