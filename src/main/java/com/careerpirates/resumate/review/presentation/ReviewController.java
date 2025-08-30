@@ -4,6 +4,7 @@ import com.careerpirates.resumate.global.message.success.SuccessResponse;
 import com.careerpirates.resumate.review.application.dto.request.ReviewRequest;
 import com.careerpirates.resumate.review.application.dto.response.ReviewResponse;
 import com.careerpirates.resumate.review.application.service.ReviewService;
+import com.careerpirates.resumate.review.docs.ReviewControllerDocs;
 import com.careerpirates.resumate.review.message.success.ReviewSuccess;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/review")
 @RequiredArgsConstructor
-public class ReviewController {
+public class ReviewController implements ReviewControllerDocs {
 
     private final ReviewService reviewService;
 
