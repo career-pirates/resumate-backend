@@ -1,6 +1,7 @@
 package com.careerpirates.resumate.review.application.dto.response;
 
 import com.careerpirates.resumate.review.domain.Review;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -19,7 +20,8 @@ public class ReviewResponse {
     private String improvements;
     private String learnings;
     private String aspirations;
-    private boolean isCompleted;
+    @JsonProperty("isCompleted")
+    private boolean completed;
     private LocalDate reviewDate;
 
     public static ReviewResponse of(Review review) {
@@ -33,7 +35,7 @@ public class ReviewResponse {
                 .improvements(review.getImprovements())
                 .learnings(review.getLearnings())
                 .aspirations(review.getAspirations())
-                .isCompleted(review.isCompleted())
+                .completed(review.isCompleted())
                 .reviewDate(review.getReviewDate())
                 .build();
     }
