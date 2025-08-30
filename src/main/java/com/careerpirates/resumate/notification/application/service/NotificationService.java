@@ -1,14 +1,17 @@
 package com.careerpirates.resumate.notification.application.service;
 
+import com.careerpirates.resumate.global.message.exception.core.BusinessException;
 import com.careerpirates.resumate.notification.application.dto.response.NotificationListResponse;
 import com.careerpirates.resumate.notification.application.dto.response.NotificationResponse;
 import com.careerpirates.resumate.notification.domain.Notification;
 import com.careerpirates.resumate.notification.infrastructure.NotificationRepository;
+import com.careerpirates.resumate.notification.message.exception.NotificationError;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -19,6 +22,24 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
 
+    @Transactional
+    public void markAsRead(Long id) {
+        Notification notification = notificationRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(NotificationError.NOTIFICATION_NOT_FOUND));
+
+        notification.markAsRead();
+        notificationRepository.save(notification);
+    }
+
+    @Transactional
+    public void deleteNotification(Long id) {
+        Notification notification = notificationRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(NotificationError.NOTIFICATION_NOT_FOUND));
+
+        notificationRepository.delete(notification);
+    }
+
+    @Transactional(readOnly = true)
     public NotificationListResponse getNotifications(Long cursorId, int size) {
         Pageable pageable = PageRequest.of(0, size + 1);
         List<Notification> notifications;
