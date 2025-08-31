@@ -27,6 +27,14 @@ public interface ReviewControllerDocs {
     })
     SuccessResponse<ReviewResponse> createReview(@RequestBody @Valid ReviewRequest request);
 
+    @Operation(method = "PUT", summary = "회고 수정", description = "회고를 수정합니다. 회고 내용과 함께 폴더와 작성 완료 여부를 변경할 수 있습니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "회고 수정에 성공하였습니다."),
+            @ApiResponse(responseCode = "404", description = "폴더를 찾을 수 없습니다.<br>회고를 찾을 수 없습니다.",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    })
+    SuccessResponse<ReviewResponse> updateReview(@PathVariable Long id, @RequestBody @Valid ReviewRequest request);
+
     @Operation(method = "GET", summary = "회고 상세 조회", description = "회고를 상세 조회합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "회고 상세 조회에 성공하였습니다."),
