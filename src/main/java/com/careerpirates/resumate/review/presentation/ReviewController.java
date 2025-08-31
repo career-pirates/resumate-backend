@@ -20,14 +20,21 @@ public class ReviewController implements ReviewControllerDocs {
     @PostMapping
     public SuccessResponse<ReviewResponse> createReview(@RequestBody @Valid ReviewRequest request) {
 
-        ReviewResponse reviewResponse = reviewService.createReview(request);
-        return SuccessResponse.of(ReviewSuccess.CREATE_REVIEW, reviewResponse);
+        ReviewResponse response = reviewService.createReview(request);
+        return SuccessResponse.of(ReviewSuccess.CREATE_REVIEW, response);
+    }
+
+    @PutMapping("/{id}")
+    public SuccessResponse<ReviewResponse> updateReview(@PathVariable Long id,
+                                                        @RequestBody @Valid ReviewRequest request) {
+        ReviewResponse response = reviewService.updateReview(id, request);
+        return SuccessResponse.of(ReviewSuccess.UPDATE_REVIEW, response);
     }
 
     @GetMapping("/{id}")
     public SuccessResponse<ReviewResponse> getReview(@PathVariable Long id) {
 
-        ReviewResponse reviewResponse = reviewService.getReview(id);
-        return SuccessResponse.of(ReviewSuccess.GET_REVIEW, reviewResponse);
+        ReviewResponse response = reviewService.getReview(id);
+        return SuccessResponse.of(ReviewSuccess.GET_REVIEW, response);
     }
 }
