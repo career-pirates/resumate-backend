@@ -8,6 +8,7 @@ import com.careerpirates.resumate.review.application.dto.request.ReviewRequest;
 import com.careerpirates.resumate.review.application.dto.response.ReviewResponse;
 import com.careerpirates.resumate.review.domain.Review;
 import com.careerpirates.resumate.review.infrastructure.ReviewRepository;
+import com.careerpirates.resumate.review.message.exception.ReviewError;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,14 @@ public class ReviewService {
                 .build();
 
         review = reviewRepository.save(review);
+        return ReviewResponse.of(review);
+    }
+
+    @Transactional(readOnly = true)
+    public ReviewResponse getReview(Long id) {
+        Review review = reviewRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(ReviewError.REVIEW_NOT_FOUND));
+
         return ReviewResponse.of(review);
     }
 
