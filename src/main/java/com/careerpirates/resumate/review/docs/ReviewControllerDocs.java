@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @Tag(name = "회고", description = "✍️ 회고 API - 회고 관리")
@@ -25,4 +26,12 @@ public interface ReviewControllerDocs {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
     })
     SuccessResponse<ReviewResponse> createReview(@RequestBody @Valid ReviewRequest request);
+
+    @Operation(method = "GET", summary = "회고 상세 조회", description = "회고를 상세 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "회고 상세 조회에 성공하였습니다."),
+            @ApiResponse(responseCode = "404", description = "회고를 찾을 수 없습니다.",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    })
+    SuccessResponse<ReviewResponse> getReview(@PathVariable Long id);
 }
