@@ -8,6 +8,7 @@ import com.careerpirates.resumate.review.application.dto.request.ReviewRequest;
 import com.careerpirates.resumate.review.application.dto.response.ReviewResponse;
 import com.careerpirates.resumate.review.domain.Review;
 import com.careerpirates.resumate.review.infrastructure.ReviewRepository;
+import com.careerpirates.resumate.review.message.exception.ReviewError;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,40 @@ public class ReviewService {
                 .build();
 
         review = reviewRepository.save(review);
+        return ReviewResponse.of(review);
+    }
+
+    @Transactional
+    public ReviewResponse updateReview(Long id, ReviewRequest request) {
+        Review review = reviewRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new BusinessException(ReviewError.REVIEW_NOT_FOUND));
+        Folder folder = folderRepository.findById(request.folderId())
+                .orElseThrow(() -> new BusinessException(FolderError.FOLDER_NOT_FOUND));
+
+        review.updateReview(
+                folder,
+                request.title(),
+                getShortDescription(request),
+                request.positives(),
+                request.improvements(),
+                request.learnings(),
+                request.aspirations(),
+                request.reviewDate()
+        );
+
+        if (request.isCompleted())
+            review.markAsCompleted();
+
+        review = reviewRepository.save(review);
+        return ReviewResponse.of(review);
+    }
+
+
+    @Transactional(readOnly = true)
+    public ReviewResponse getReview(Long id) {
+        Review review = reviewRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new BusinessException(ReviewError.REVIEW_NOT_FOUND));
+
         return ReviewResponse.of(review);
     }
 
