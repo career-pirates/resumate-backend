@@ -71,6 +71,18 @@ public class Review extends BaseEntity {
         isDeleted = false;
     }
 
+    public void updateReview(Folder folder, String title, String description, String positives, String improvements,
+                             String learnings, String aspirations, LocalDate reviewDate) {
+        this.folder = folder;
+        this.title = title;
+        this.description = description;
+        this.positives = positives;
+        this.improvements = improvements;
+        this.learnings = learnings;
+        this.aspirations = aspirations;
+        this.reviewDate = reviewDate;
+    }
+
     public void markAsCompleted() {
         this.isCompleted = true;
     }

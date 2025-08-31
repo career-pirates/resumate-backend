@@ -43,6 +43,32 @@ public class ReviewService {
         return ReviewResponse.of(review);
     }
 
+    @Transactional
+    public ReviewResponse updateReview(Long id, ReviewRequest request) {
+        Review review = reviewRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(ReviewError.REVIEW_NOT_FOUND));
+        Folder folder = folderRepository.findById(request.folderId())
+                .orElseThrow(() -> new BusinessException(FolderError.FOLDER_NOT_FOUND));
+
+        review.updateReview(
+                folder,
+                request.title(),
+                getShortDescription(request),
+                request.positives(),
+                request.improvements(),
+                request.learnings(),
+                request.aspirations(),
+                request.reviewDate()
+        );
+
+        if (request.isCompleted())
+            review.markAsCompleted();
+
+        review = reviewRepository.save(review);
+        return ReviewResponse.of(review);
+    }
+
+
     @Transactional(readOnly = true)
     public ReviewResponse getReview(Long id) {
         Review review = reviewRepository.findById(id)

@@ -28,11 +28,9 @@ class ReviewServiceTest {
     @Autowired
     private ReviewService reviewService;
     @Autowired
-    private ReviewRepository reveiwRepository;
+    private ReviewRepository reviewRepository;
     @Autowired
     private FolderRepository folderRepository;
-    @Autowired
-    private ReviewRepository reviewRepository;
 
     @BeforeEach
     void setUp() {
@@ -62,6 +60,24 @@ class ReviewServiceTest {
         Review found = reviewRepository.findById(response.getId()).orElseThrow();
         assertThat(found).extracting("title")
                 .isEqualTo("회고A-2");
+    }
+
+    @Test
+    @DisplayName("임시 저장된 회고의 제목을 수정하고 작성 완료합니다.")
+    void updateReview_success() {
+        // given
+        Folder folderA = folderRepository.findByName("A").orElseThrow();
+        Folder folderAB = folderRepository.findByName("AB").orElseThrow();
+        ReviewResponse created = reviewService.createReview(createReviewRequest(folderA.getId(), "임시회고", false));
+
+        ReviewRequest request = createReviewRequest(folderAB.getId(), "완료회고", true);
+
+        // when
+        ReviewResponse response = reviewService.updateReview(created.getId(), request);
+
+        // then
+        assertThat(response).extracting("title", "folderName", "completed")
+                .containsExactly("완료회고", "AB", true);
     }
 
     @Test
