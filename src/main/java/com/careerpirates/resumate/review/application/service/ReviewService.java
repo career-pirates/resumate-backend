@@ -45,7 +45,7 @@ public class ReviewService {
 
     @Transactional
     public ReviewResponse updateReview(Long id, ReviewRequest request) {
-        Review review = reviewRepository.findById(id)
+        Review review = reviewRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new BusinessException(ReviewError.REVIEW_NOT_FOUND));
         Folder folder = folderRepository.findById(request.folderId())
                 .orElseThrow(() -> new BusinessException(FolderError.FOLDER_NOT_FOUND));
@@ -71,7 +71,7 @@ public class ReviewService {
 
     @Transactional(readOnly = true)
     public ReviewResponse getReview(Long id) {
-        Review review = reviewRepository.findById(id)
+        Review review = reviewRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new BusinessException(ReviewError.REVIEW_NOT_FOUND));
 
         return ReviewResponse.of(review);
