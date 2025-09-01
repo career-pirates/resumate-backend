@@ -116,6 +116,25 @@ class ReviewServiceTest {
     }
 
     @Test
+    @DisplayName("휴지통의 회고를 복원합니다.")
+    void restoreReview_success() {
+        // given
+        Folder folderAB = folderRepository.findByName("AB").orElseThrow();
+
+        Long reviewId = reviewRepository.findAll().stream()
+                .filter(r -> r.getTitle().equals("회고A")).findFirst().get().getId();
+        reviewService.deleteReview(reviewId);
+
+        // when
+        reviewService.restoreReview(reviewId, folderAB.getId());
+
+        // then
+        ReviewResponse response = reviewService.getReview(reviewId);
+        assertThat(response).extracting("title", "folderName")
+                .containsExactly("회고A", "AB");
+    }
+
+    @Test
     @DisplayName("회고를 상세 조회합니다.")
     void getReview_success() {
         // given

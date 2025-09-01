@@ -3,10 +3,7 @@ package com.careerpirates.resumate.review.domain;
 import com.careerpirates.resumate.folder.domain.Folder;
 import com.careerpirates.resumate.global.domain.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -22,6 +19,7 @@ public class Review extends BaseEntity {
     @Column(name = "id")
     private Long id;
 
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "folder_id", nullable = false)
     private Folder folder;

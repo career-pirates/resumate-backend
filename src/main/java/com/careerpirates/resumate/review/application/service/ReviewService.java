@@ -85,6 +85,18 @@ public class ReviewService {
         reviewRepository.delete(review);
     }
 
+    @Transactional
+    public void restoreReview(Long id, Long folderId) {
+        Review review = reviewRepository.findByIdAndIsDeletedTrue(id)
+                .orElseThrow(() -> new BusinessException(ReviewError.REVIEW_NOT_FOUND));
+        Folder folder = folderRepository.findById(folderId)
+                .orElseThrow(() -> new BusinessException(FolderError.FOLDER_NOT_FOUND));
+
+        review.restore();
+        review.setFolder(folder);
+        reviewRepository.save(review);
+    }
+
     @Transactional(readOnly = true)
     public ReviewResponse getReview(Long id) {
         Review review = reviewRepository.findByIdAndIsDeletedFalse(id)
