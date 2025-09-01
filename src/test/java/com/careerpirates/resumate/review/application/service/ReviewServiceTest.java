@@ -224,6 +224,80 @@ class ReviewServiceTest {
     }
 
     @Test
+    @DisplayName("폴더 내 회고 목록을 조회합니다. (임시 저장 조회)")
+    void getReviewsByFolder_isCompletedFalse() {
+        // given
+        Folder folderAB = folderRepository.findByName("AB").orElseThrow();
+        Folder folderBA = folderRepository.findByName("BA").orElseThrow();
+
+        reviewService.createReview(createReviewRequest(folderAB.getId(), "회고AB-1", true, LocalDate.of(2025, 9, 15)));
+        reviewService.createReview(createReviewRequest(folderAB.getId(), "회고AB-2", false, LocalDate.of(2025, 9, 14)));
+        reviewService.createReview(createReviewRequest(folderAB.getId(), "회고AB-3", false, LocalDate.of(2025, 9, 16)));
+        reviewService.createReview(createReviewRequest(folderBA.getId(), "회고BA-1", false, LocalDate.of(2025, 9, 16)));
+
+        // when
+        ReviewListResponse response = reviewService.getReviewsByFolder(folderAB.getId(), 0, 5, ReviewSortType.REVIEW_DATE_DESC, false, false);
+
+        // then
+        assertThat(response.getReviews()).hasSize(2)
+                .extracting("title").containsExactly("회고AB-3", "회고AB-2");
+        assertThat(response).extracting("page", "size", "hasNext")
+                .containsExactly(0, 5, false);
+    }
+
+    @Test
+    @DisplayName("폴더 내 회고 목록을 조회합니다. (페이지 확인)")
+    void getReviewsByFolder_pagination() {
+        // given
+        Folder folderAB = folderRepository.findByName("AB").orElseThrow();
+        Folder folderBA = folderRepository.findByName("BA").orElseThrow();
+
+        reviewService.createReview(createReviewRequest(folderAB.getId(), "회고AB-1", true, LocalDate.of(2025, 9, 15)));
+        reviewService.createReview(createReviewRequest(folderAB.getId(), "회고AB-2", true, LocalDate.of(2025, 9, 14)));
+        reviewService.createReview(createReviewRequest(folderAB.getId(), "회고AB-3", true, LocalDate.of(2025, 9, 16)));
+        reviewService.createReview(createReviewRequest(folderBA.getId(), "회고BA-1", true, LocalDate.of(2025, 9, 16)));
+
+        // when
+        ReviewListResponse response = reviewService.getReviewsByFolder(folderAB.getId(), 0, 2, ReviewSortType.REVIEW_DATE_DESC, true, false);
+
+        // then
+        assertThat(response.getReviews()).extracting("title").containsExactly("회고AB-3", "회고AB-1");
+        assertThat(response).extracting("page", "size", "hasNext")
+                .containsExactly(0, 2, true);
+    }
+
+    @ParameterizedTest
+    @DisplayName("폴더 내 회고 목록을 조회합니다. (정렬 조건 확인)")
+    @CsvSource({
+            // page, size, sortType, isCompleted, expectedTitles
+            "0, 5, REVIEW_DATE_DESC, true, '회고AB-3,회고AB-1,회고AB-2'",
+            "0, 5, REVIEW_DATE_ASC, true, '회고AB-2,회고AB-1,회고AB-3'",
+            "0, 5, MODIFIED_DATE_DESC, true, '회고AB-3,회고AB-2,회고AB-1'",
+            "0, 5, MODIFIED_DATE_ASC, true, '회고AB-1,회고AB-2,회고AB-3,'"
+    })
+    void getReviewsByFolder_sortType(int page, int size, String sortTypeStr, boolean isCompleted, String expectedTitles) {
+        // given
+        Folder folderAB = folderRepository.findByName("AB").orElseThrow();
+        Folder folderBA = folderRepository.findByName("BA").orElseThrow();
+
+        reviewService.createReview(createReviewRequest(folderAB.getId(), "회고AB-1", true, LocalDate.of(2025, 9, 15)));
+        reviewService.createReview(createReviewRequest(folderAB.getId(), "회고AB-2", true, LocalDate.of(2025, 9, 14)));
+        reviewService.createReview(createReviewRequest(folderAB.getId(), "회고AB-3", true, LocalDate.of(2025, 9, 16)));
+        reviewService.createReview(createReviewRequest(folderBA.getId(), "회고BA-1", true, LocalDate.of(2025, 9, 16)));
+
+        ReviewSortType sortType = ReviewSortType.valueOf(sortTypeStr);
+
+        // when
+        ReviewListResponse response = reviewService.getReviewsByFolder(folderAB.getId(),0, 5, sortType, true, null);
+
+        // then
+        String[] expected = expectedTitles.split(",");
+        assertThat(response.getReviews()).hasSize(expected.length)
+                .extracting("title")
+                .containsExactly(expected);
+    }
+
+    @Test
     @DisplayName("회고를 찾을 수 없을 시 예외가 발생합니다.")
     void getReview_notFound() {
         // when then

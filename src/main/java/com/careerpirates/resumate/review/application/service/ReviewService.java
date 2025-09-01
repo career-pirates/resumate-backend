@@ -117,6 +117,16 @@ public class ReviewService {
         return ReviewListResponse.of(reviews);
     }
 
+    @Transactional(readOnly = true)
+    public ReviewListResponse getReviewsByFolder(Long folderId, int page, int size, ReviewSortType sort, Boolean isCompleted, Boolean isDeleted) {
+        Folder folder = folderRepository.findById(folderId)
+                .orElseThrow(() -> new BusinessException(FolderError.FOLDER_NOT_FOUND));
+        PageRequest pageRequest = PageRequest.of(page, size, sort.getSort());
+
+        Slice<Review> reviews = reviewRepository.findByFolderAndIsCompletedAndIsDeleted(folder, isCompleted, isDeleted, pageRequest);
+        return ReviewListResponse.of(reviews, folder);
+    }
+
     private String getShortDescription(ReviewRequest request) {
         String result = String.join(" ",
                 request.positives() != null ? request.positives().trim() : "",

@@ -1,5 +1,6 @@
 package com.careerpirates.resumate.review.infrastructure;
 
+import com.careerpirates.resumate.folder.domain.Folder;
 import com.careerpirates.resumate.review.domain.Review;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,8 +16,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     Optional<Review> findByIdAndIsDeletedTrue(long id);
 
-    Page<Review> findByFolder_IdAndIsDeleted(Long folderId, boolean isDeleted, Pageable pageable);
-
     @Query("""
         SELECT r
         FROM Review r
@@ -24,4 +23,13 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
           AND r.isDeleted = COALESCE(:isDeleted, false)
     """)
     Slice<Review> findByIsCompletedAndIsDeleted(Boolean isCompleted, Boolean isDeleted, Pageable pageable);
+
+    @Query("""
+        SELECT r
+        FROM Review r
+        WHERE r.folder = :folder
+          AND (:isCompleted IS NULL OR r.isCompleted = :isCompleted)
+          AND r.isDeleted = COALESCE(:isDeleted, false)
+    """)
+    Slice<Review> findByFolderAndIsCompletedAndIsDeleted(Folder folder, Boolean isCompleted, Boolean isDeleted, Pageable pageable);
 }
