@@ -43,6 +43,14 @@ public interface ReviewControllerDocs {
     })
     SuccessResponse<?> deleteReview(@PathVariable Long id);
 
+    @Operation(method = "DELETE", summary = "회고 영구 삭제", description = "휴지통의 회고를 영구 삭제합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "회고 영구 삭제에 성공하였습니다."),
+            @ApiResponse(responseCode = "404", description = "회고를 찾을 수 없습니다.",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    })
+    SuccessResponse<?> deleteReviewPermanently(@PathVariable Long id);
+
     @Operation(method = "GET", summary = "회고 상세 조회", description = "회고를 상세 조회합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "회고 상세 조회에 성공하였습니다."),
