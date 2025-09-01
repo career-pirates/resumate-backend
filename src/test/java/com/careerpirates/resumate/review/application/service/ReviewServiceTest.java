@@ -15,6 +15,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.Optional;
+
 import static com.careerpirates.resumate.folder.factory.FolderTestFactory.createDefaultFolders;
 import static com.careerpirates.resumate.review.application.factory.ReviewTestFactory.createReviewRequest;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -78,6 +80,58 @@ class ReviewServiceTest {
         // then
         assertThat(response).extracting("title", "folderName", "completed")
                 .containsExactly("완료회고", "AB", true);
+    }
+
+    @Test
+    @DisplayName("회고를 휴지통으로 보냅니다.")
+    void deleteReview_success() {
+        // given
+        Long reviewId = reviewRepository.findAll().stream()
+                .filter(r -> r.getTitle().equals("회고A")).findFirst().get().getId();
+
+        // when
+        reviewService.deleteReview(reviewId);
+
+        // then
+        Review found = reviewRepository.findById(reviewId).orElseThrow();
+        assertThat(found).isNotNull()
+                .extracting("isDeleted")
+                .isEqualTo(true);
+    }
+
+    @Test
+    @DisplayName("휴지통의 회고를 영구 삭제합니다.")
+    void deleteReviewPermanently_success() {
+        // given
+        Long reviewId = reviewRepository.findAll().stream()
+                .filter(r -> r.getTitle().equals("회고A")).findFirst().get().getId();
+        reviewService.deleteReview(reviewId);
+
+        // when
+        reviewService.deleteReviewPermanently(reviewId);
+
+        // then
+        Optional<Review> found = reviewRepository.findById(reviewId);
+        assertThat(found).isEmpty();
+    }
+
+    @Test
+    @DisplayName("휴지통의 회고를 복원합니다.")
+    void restoreReview_success() {
+        // given
+        Folder folderAB = folderRepository.findByName("AB").orElseThrow();
+
+        Long reviewId = reviewRepository.findAll().stream()
+                .filter(r -> r.getTitle().equals("회고A")).findFirst().get().getId();
+        reviewService.deleteReview(reviewId);
+
+        // when
+        reviewService.restoreReview(reviewId, folderAB.getId());
+
+        // then
+        ReviewResponse response = reviewService.getReview(reviewId);
+        assertThat(response).extracting("title", "folderName")
+                .containsExactly("회고A", "AB");
     }
 
     @Test
