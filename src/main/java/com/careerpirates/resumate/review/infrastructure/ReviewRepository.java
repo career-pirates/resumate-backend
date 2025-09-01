@@ -19,6 +19,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     @Query("""
         SELECT r
         FROM Review r
+          LEFT JOIN FETCH r.folder
         WHERE (:isCompleted IS NULL OR r.isCompleted = :isCompleted)
           AND r.isDeleted = COALESCE(:isDeleted, false)
     """)
@@ -27,6 +28,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     @Query("""
         SELECT r
         FROM Review r
+          LEFT JOIN FETCH r.folder
         WHERE r.folder = :folder
           AND (:isCompleted IS NULL OR r.isCompleted = :isCompleted)
           AND r.isDeleted = COALESCE(:isDeleted, false)
