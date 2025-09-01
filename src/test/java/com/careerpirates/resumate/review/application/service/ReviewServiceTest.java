@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Optional;
 
 import static com.careerpirates.resumate.folder.factory.FolderTestFactory.createDefaultFolders;
@@ -220,7 +221,7 @@ class ReviewServiceTest {
         String[] expected = expectedTitles.split(",");
         assertThat(response.getReviews()).hasSize(expected.length)
                 .extracting("title")
-                .containsExactly(expected);
+                .containsExactlyElementsOf(Arrays.asList(expected));
     }
 
     @Test
@@ -294,7 +295,7 @@ class ReviewServiceTest {
         String[] expected = expectedTitles.split(",");
         assertThat(response.getReviews()).hasSize(expected.length)
                 .extracting("title")
-                .containsExactly(expected);
+                .containsExactlyElementsOf(Arrays.asList(expected));
     }
 
     @Test
