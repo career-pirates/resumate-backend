@@ -68,6 +68,14 @@ public class ReviewService {
         return ReviewResponse.of(review);
     }
 
+    @Transactional
+    public void deleteReview(Long id) {
+        Review review = reviewRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new BusinessException(ReviewError.REVIEW_NOT_FOUND));
+
+        review.softDelete();
+        reviewRepository.save(review);
+    }
 
     @Transactional(readOnly = true)
     public ReviewResponse getReview(Long id) {

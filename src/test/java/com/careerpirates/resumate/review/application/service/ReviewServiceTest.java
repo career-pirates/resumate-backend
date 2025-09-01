@@ -81,6 +81,23 @@ class ReviewServiceTest {
     }
 
     @Test
+    @DisplayName("회고를 휴지통으로 보냅니다.")
+    void deleteReview_success() {
+        // given
+        Long reviewId = reviewRepository.findAll().stream()
+                .filter(r -> r.getTitle().equals("회고A")).findFirst().get().getId();
+
+        // when
+        reviewService.deleteReview(reviewId);
+
+        // then
+        Review found = reviewRepository.findById(reviewId).orElseThrow();
+        assertThat(found).isNotNull()
+                .extracting("isDeleted")
+                .isEqualTo(true);
+    }
+
+    @Test
     @DisplayName("회고를 상세 조회합니다.")
     void getReview_success() {
         // given
