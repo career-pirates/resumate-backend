@@ -201,7 +201,7 @@ class ReviewServiceTest {
             "0, 5, REVIEW_DATE_DESC, true, '회고BA-1,회고AB-1,회고AB-2,회고A'",
             "0, 5, REVIEW_DATE_ASC, true, '회고A,회고AB-2,회고AB-1,회고BA-1'",
             "0, 5, MODIFIED_DATE_DESC, true, '회고BA-1,회고AB-2,회고AB-1,회고A'",
-            "0, 5, MODIFIED_DATE_ASC, true, '회고A,회고AB-1,회고AB-2,회고BA-1,'"
+            "0, 5, MODIFIED_DATE_ASC, true, '회고A,회고AB-1,회고AB-2,회고BA-1'"
     })
     void getReviews_sortType(int page, int size, String sortTypeStr, boolean isCompleted, String expectedTitles) {
         // given
@@ -274,7 +274,7 @@ class ReviewServiceTest {
             "0, 5, REVIEW_DATE_DESC, true, '회고AB-3,회고AB-1,회고AB-2'",
             "0, 5, REVIEW_DATE_ASC, true, '회고AB-2,회고AB-1,회고AB-3'",
             "0, 5, MODIFIED_DATE_DESC, true, '회고AB-3,회고AB-2,회고AB-1'",
-            "0, 5, MODIFIED_DATE_ASC, true, '회고AB-1,회고AB-2,회고AB-3,'"
+            "0, 5, MODIFIED_DATE_ASC, true, '회고AB-1,회고AB-2,회고AB-3'"
     })
     void getReviewsByFolder_sortType(int page, int size, String sortTypeStr, boolean isCompleted, String expectedTitles) {
         // given

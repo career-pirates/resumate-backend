@@ -2,7 +2,6 @@ package com.careerpirates.resumate.review.infrastructure;
 
 import com.careerpirates.resumate.folder.domain.Folder;
 import com.careerpirates.resumate.review.domain.Review;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;

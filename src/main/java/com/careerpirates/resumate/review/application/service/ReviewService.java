@@ -96,8 +96,7 @@ public class ReviewService {
         Folder folder = folderRepository.findById(folderId)
                 .orElseThrow(() -> new BusinessException(FolderError.FOLDER_NOT_FOUND));
 
-        review.restore();
-        review.setFolder(folder);
+        review.restore(folder);
         reviewRepository.save(review);
     }
 
