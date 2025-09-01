@@ -43,6 +43,12 @@ public class ReviewController implements ReviewControllerDocs {
         return SuccessResponse.of(ReviewSuccess.DELETE_REVIEW_PERMANENTLY);
     }
 
+    @PatchMapping("/{id}/restore")
+    public SuccessResponse<?> restoreReview(@PathVariable Long id, @RequestParam Long folderId) {
+        reviewService.restoreReview(id, folderId);
+        return SuccessResponse.of(ReviewSuccess.RESTORE_REVIEW);
+    }
+
     @GetMapping("/{id}")
     public SuccessResponse<ReviewResponse> getReview(@PathVariable Long id) {
 
