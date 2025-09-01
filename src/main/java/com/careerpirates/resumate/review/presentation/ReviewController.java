@@ -37,6 +37,12 @@ public class ReviewController implements ReviewControllerDocs {
         return SuccessResponse.of(ReviewSuccess.DELETE_REVIEW);
     }
 
+    @DeleteMapping("/{id}/permanent")
+    public SuccessResponse<?> deleteReviewPermanently(@PathVariable Long id) {
+        reviewService.deleteReviewPermanently(id);
+        return SuccessResponse.of(ReviewSuccess.DELETE_REVIEW_PERMANENTLY);
+    }
+
     @GetMapping("/{id}")
     public SuccessResponse<ReviewResponse> getReview(@PathVariable Long id) {
 
