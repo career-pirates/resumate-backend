@@ -71,10 +71,12 @@ public interface ReviewControllerDocs {
     })
     SuccessResponse<ReviewResponse> getReview(@PathVariable Long id);
 
-    @Operation(method = "GET", summary = "회고 목록 조회", description = "전체 회고 목록을 조회합니다. 임시 저장 상태인 회고와 휴지통의 회고를 조회할 수도 있습니다.")
+    @Operation(method = "GET", summary = "회고 목록 조회", description = "회고 목록을 조회합니다. 임시 저장 상태인 회고와 휴지통의 회고를 조회할 수도 있습니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "회고 목록 조회에 성공하였습니다."),
             @ApiResponse(responseCode = "400", description = "요청이 잘못되었습니다.",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "폴더를 찾을 수 없습니다.",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
     })
     SuccessResponse<ReviewListResponse> getReviews(@ModelAttribute ReviewListRequest request);

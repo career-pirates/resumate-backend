@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReviewListRequest {
+    Long folderId;
+
     @Builder.Default
     @Min(value = 0, message = "페이지는 0 이상이어야 합니다")
     private int page = 0;

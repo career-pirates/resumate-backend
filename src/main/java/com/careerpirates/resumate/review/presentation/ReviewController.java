@@ -63,13 +63,18 @@ public class ReviewController implements ReviewControllerDocs {
     @GetMapping
     public SuccessResponse<ReviewListResponse> getReviews(@ModelAttribute ReviewListRequest request) {
 
-        ReviewListResponse response = reviewService.getReviews(
-                request.getPage(),
-                request.getSize(),
-                request.getSort(),
-                request.getIsCompleted(),
-                request.getIsDeleted()
-        );
+        ReviewListResponse response;
+        if (request.getFolderId() == null)
+            response = reviewService.getReviews(
+                    request.getPage(), request.getSize(), request.getSort(), request.getIsCompleted(),
+                    request.getIsDeleted()
+            );
+        else {
+            response = reviewService.getReviewsByFolder(
+                    request.getFolderId(), request.getPage(), request.getSize(), request.getSort(),
+                    request.getIsCompleted(), request.getIsDeleted()
+            );
+        }
         return SuccessResponse.of(ReviewSuccess.GET_REVIEWS, response);
     }
 }
