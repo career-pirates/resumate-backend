@@ -5,12 +5,16 @@ import com.careerpirates.resumate.folder.infrastructure.FolderRepository;
 import com.careerpirates.resumate.folder.message.exception.FolderError;
 import com.careerpirates.resumate.global.message.exception.core.BusinessException;
 import com.careerpirates.resumate.review.application.dto.request.ReviewRequest;
+import com.careerpirates.resumate.review.application.dto.request.ReviewSortType;
+import com.careerpirates.resumate.review.application.dto.response.ReviewListResponse;
 import com.careerpirates.resumate.review.application.dto.response.ReviewResponse;
 import com.careerpirates.resumate.review.domain.Review;
 import com.careerpirates.resumate.review.infrastructure.ReviewRepository;
 import com.careerpirates.resumate.review.message.exception.ReviewError;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -103,6 +107,14 @@ public class ReviewService {
                 .orElseThrow(() -> new BusinessException(ReviewError.REVIEW_NOT_FOUND));
 
         return ReviewResponse.of(review);
+    }
+
+    @Transactional(readOnly = true)
+    public ReviewListResponse getReviews(int page, int size, ReviewSortType sort, Boolean isCompleted, Boolean isDeleted) {
+        PageRequest pageRequest = PageRequest.of(page, size, sort.getSort());
+
+        Slice<Review> reviews = reviewRepository.findByIsCompletedAndIsDeleted(isCompleted, isDeleted, pageRequest);
+        return ReviewListResponse.of(reviews);
     }
 
     private String getShortDescription(ReviewRequest request) {

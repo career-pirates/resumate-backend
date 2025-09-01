@@ -4,6 +4,8 @@ import com.careerpirates.resumate.folder.domain.Folder;
 import com.careerpirates.resumate.folder.infrastructure.FolderRepository;
 import com.careerpirates.resumate.global.message.exception.core.BusinessException;
 import com.careerpirates.resumate.review.application.dto.request.ReviewRequest;
+import com.careerpirates.resumate.review.application.dto.request.ReviewSortType;
+import com.careerpirates.resumate.review.application.dto.response.ReviewListResponse;
 import com.careerpirates.resumate.review.application.dto.response.ReviewResponse;
 import com.careerpirates.resumate.review.domain.Review;
 import com.careerpirates.resumate.review.infrastructure.ReviewRepository;
@@ -12,9 +14,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import static com.careerpirates.resumate.folder.factory.FolderTestFactory.createDefaultFolders;
@@ -146,6 +151,76 @@ class ReviewServiceTest {
 
         // then
         assertThat(response).extracting("title").isEqualTo("회고A");
+    }
+
+    @Test
+    @DisplayName("전체 회고 목록을 조회합니다. (임시 저장 조회)")
+    void getReviews_isCompletedFalse() {
+        // given
+        Folder folderAB = folderRepository.findByName("AB").orElseThrow();
+        Folder folderBA = folderRepository.findByName("BA").orElseThrow();
+
+        reviewService.createReview(createReviewRequest(folderAB.getId(), "회고AB-1", true, LocalDate.of(2025, 9, 15)));
+        reviewService.createReview(createReviewRequest(folderAB.getId(), "회고AB-2", false, LocalDate.of(2025, 9, 14)));
+        reviewService.createReview(createReviewRequest(folderBA.getId(), "회고BA-1", false, LocalDate.of(2025, 9, 16)));
+
+        // when
+        ReviewListResponse response = reviewService.getReviews(0, 5, ReviewSortType.REVIEW_DATE_DESC, false, false);
+
+        // then
+        assertThat(response.getReviews()).extracting("title").containsExactly("회고BA-1", "회고AB-2");
+        assertThat(response).extracting("page", "size", "hasNext")
+                .containsExactly(0, 5, false);
+    }
+
+    @Test
+    @DisplayName("전체 회고 목록을 조회합니다. (페이지 확인)")
+    void getReviews_pagination() {
+        // given
+        Folder folderAB = folderRepository.findByName("AB").orElseThrow();
+        Folder folderBA = folderRepository.findByName("BA").orElseThrow();
+
+        reviewService.createReview(createReviewRequest(folderAB.getId(), "회고AB-1", true, LocalDate.of(2025, 9, 15)));
+        reviewService.createReview(createReviewRequest(folderAB.getId(), "회고AB-2", true, LocalDate.of(2025, 9, 14)));
+        reviewService.createReview(createReviewRequest(folderBA.getId(), "회고BA-1", true, LocalDate.of(2025, 9, 16)));
+
+        // when
+        ReviewListResponse response = reviewService.getReviews(0, 2, ReviewSortType.REVIEW_DATE_DESC, true, false);
+
+        // then
+        assertThat(response.getReviews()).extracting("title").containsExactly("회고BA-1", "회고AB-1");
+        assertThat(response).extracting("page", "size", "hasNext")
+                .containsExactly(0, 2, true);
+    }
+
+    @ParameterizedTest
+    @DisplayName("전체 회고 목록을 조회합니다. (정렬 조건 확인)")
+    @CsvSource({
+            // page, size, sortType, isCompleted, expectedTitles
+            "0, 5, REVIEW_DATE_DESC, true, '회고BA-1,회고AB-1,회고AB-2,회고A'",
+            "0, 5, REVIEW_DATE_ASC, true, '회고A,회고AB-2,회고AB-1,회고BA-1'",
+            "0, 5, MODIFIED_DATE_DESC, true, '회고BA-1,회고AB-2,회고AB-1,회고A'",
+            "0, 5, MODIFIED_DATE_ASC, true, '회고A,회고AB-1,회고AB-2,회고BA-1,'"
+    })
+    void getReviews_sortType(int page, int size, String sortTypeStr, boolean isCompleted, String expectedTitles) {
+        // given
+        Folder folderAB = folderRepository.findByName("AB").orElseThrow();
+        Folder folderBA = folderRepository.findByName("BA").orElseThrow();
+
+        reviewService.createReview(createReviewRequest(folderAB.getId(), "회고AB-1", true, LocalDate.of(2025, 9, 15)));
+        reviewService.createReview(createReviewRequest(folderAB.getId(), "회고AB-2", true, LocalDate.of(2025, 9, 14)));
+        reviewService.createReview(createReviewRequest(folderBA.getId(), "회고BA-1", true, LocalDate.of(2025, 9, 16)));
+
+        ReviewSortType sortType = ReviewSortType.valueOf(sortTypeStr);
+
+        // when
+        ReviewListResponse response = reviewService.getReviews(0, 5, sortType, true, null);
+
+        // then
+        String[] expected = expectedTitles.split(",");
+        assertThat(response.getReviews()).hasSize(expected.length)
+                .extracting("title")
+                .containsExactly(expected);
     }
 
     @Test
