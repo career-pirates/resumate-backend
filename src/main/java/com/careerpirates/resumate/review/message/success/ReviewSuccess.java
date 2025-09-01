@@ -11,6 +11,7 @@ public enum ReviewSuccess implements SuccessCode {
 
     CREATE_REVIEW(HttpStatus.CREATED, "회고 작성에 성공하였습니다."),
     UPDATE_REVIEW(HttpStatus.OK, "회고 수정에 성공하였습니다."),
+    DELETE_REVIEW(HttpStatus.OK, "회고 삭제에 성공하였습니다."),
     GET_REVIEW(HttpStatus.OK, "회고 상세 조회에 성공하였습니다.");
 
     private final HttpStatus status;

@@ -31,6 +31,12 @@ public class ReviewController implements ReviewControllerDocs {
         return SuccessResponse.of(ReviewSuccess.UPDATE_REVIEW, response);
     }
 
+    @DeleteMapping("/{id}")
+    public SuccessResponse<?> deleteReview(@PathVariable Long id) {
+        reviewService.deleteReview(id);
+        return SuccessResponse.of(ReviewSuccess.DELETE_REVIEW);
+    }
+
     @GetMapping("/{id}")
     public SuccessResponse<ReviewResponse> getReview(@PathVariable Long id) {
 
