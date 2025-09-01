@@ -19,9 +19,8 @@ public class Review extends BaseEntity {
     @Column(name = "id")
     private Long id;
 
-    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "folder_id", nullable = false)
+    @JoinColumn(name = "folder_id")
     private Folder folder;
 
     @Column(name = "title", nullable = false, length = 100)
@@ -86,11 +85,13 @@ public class Review extends BaseEntity {
     }
 
     public void softDelete() {
+        this.folder = null;
         this.isDeleted = true;
         this.deletedAt = LocalDateTime.now();
     }
 
-    public void restore() {
+    public void restore(Folder folder) {
+        this.folder = folder;
         this.isDeleted = false;
         this.deletedAt = null;
     }
