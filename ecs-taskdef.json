@@ -1,8 +1,4 @@
 {
-  "compatibilities": [
-    "EC2",
-    "FARGATE"
-  ],
   "containerDefinitions": [
     {
       "cpu": 0,
@@ -40,7 +36,6 @@
     }
   ],
   "cpu": "512",
-  "enableFaultInjection": false,
   "ephemeralStorage": {
     "sizeInGiB": 21
   },
