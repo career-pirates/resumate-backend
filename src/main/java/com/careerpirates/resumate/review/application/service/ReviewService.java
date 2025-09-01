@@ -77,6 +77,14 @@ public class ReviewService {
         reviewRepository.save(review);
     }
 
+    @Transactional
+    public void deleteReviewPermanently(Long id) {
+        Review review = reviewRepository.findByIdAndIsDeletedTrue(id)
+                .orElseThrow(() -> new BusinessException(ReviewError.REVIEW_NOT_FOUND));
+
+        reviewRepository.delete(review);
+    }
+
     @Transactional(readOnly = true)
     public ReviewResponse getReview(Long id) {
         Review review = reviewRepository.findByIdAndIsDeletedFalse(id)

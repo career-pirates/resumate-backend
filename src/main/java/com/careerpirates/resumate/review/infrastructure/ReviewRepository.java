@@ -11,6 +11,8 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     Optional<Review> findByIdAndIsDeletedFalse(long id);
 
+    Optional<Review> findByIdAndIsDeletedTrue(long id);
+
     Page<Review> findByFolder_IdAndIsDeletedOrderByReviewDateDesc(Long folderId, boolean isDeleted, Pageable pageable);
 
     Page<Review> findByIsDeletedOrderByReviewDateDesc(boolean isDeleted, Pageable pageable);
