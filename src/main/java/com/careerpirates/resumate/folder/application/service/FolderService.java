@@ -9,6 +9,8 @@ import com.careerpirates.resumate.folder.domain.Folder;
 import com.careerpirates.resumate.folder.infrastructure.FolderRepository;
 import com.careerpirates.resumate.folder.message.exception.FolderError;
 import com.careerpirates.resumate.global.message.exception.core.BusinessException;
+import com.careerpirates.resumate.review.domain.Review;
+import com.careerpirates.resumate.review.infrastructure.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,7 @@ import java.util.stream.Collectors;
 public class FolderService {
 
     private final FolderRepository folderRepository;
+    private final ReviewRepository reviewRepository;
 
     @Transactional
     public FolderResponse createFolder(FolderRequest request) {
@@ -147,15 +150,27 @@ public class FolderService {
     }
 
     private void clearFolderRecursively(Folder folder) {
-        // TODO: 폴더에 포함된 회고를 휴지통으로 보내기 (아직 회고 기능 구현 안됨)
 
         // 자식 폴더 재귀적으로 삭제
         Iterator<Folder> iterator = folder.getChildren().iterator();
         while (iterator.hasNext()) {
             Folder child = iterator.next();
+
+            // 폴더에 속한 회고 삭제
+            List<Review> reviews = reviewRepository.findByFolder(child);
+            for (Review review : reviews)
+                review.softDelete();
+            reviewRepository.saveAll(reviews);
+
             iterator.remove(); // 안전하게 삭제
             clearFolderRecursively(child);
         }
+
+        // 상위 폴더에 속한 회고 삭제
+        List<Review> reviews = reviewRepository.findByFolder(folder);
+        for (Review review : reviews)
+            review.softDelete();
+        reviewRepository.saveAll(reviews);
 
         // 데이터베이스에서 폴더 삭제
         folderRepository.delete(folder);
