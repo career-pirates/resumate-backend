@@ -1,0 +1,118 @@
+{
+  "compatibilities": [
+    "EC2",
+    "FARGATE"
+  ],
+  "containerDefinitions": [
+    {
+      "cpu": 0,
+      "environment": [
+        {
+          "name": "CORS_ALLOWED_ORIGINS",
+          "value": "*"
+        },
+        {
+          "name": "REDIS_HOST",
+          "value": "hms.studio1122.net"
+        },
+        {
+          "name": "CORS_ALLOWED_HEADERS",
+          "value": "Authorization,Content-Type,Accept,Origin,X-Requested-With"
+        },
+        {
+          "name": "SPRING_DATASOURCE_URL",
+          "value": "jdbc:postgresql://resumate-aurora-cluster.cluster-c5skseisoat7.ap-northeast-2.rds.amazonaws.com:5432/postgres"
+        },
+        {
+          "name": "SPRING_JPA_HIBERNATE_DDL_AUTO",
+          "value": "update"
+        },
+        {
+          "name": "SPRING_PROFILES_ACTIVE",
+          "value": "prod"
+        },
+        {
+          "name": "SPRING_DATASOURCE_USERNAME",
+          "value": "resumate_admin1"
+        },
+        {
+          "name": "CORS_ALLOWED_METHODS",
+          "value": "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+        },
+        {
+          "name": "REDIS_PORT",
+          "value": "16379"
+        },
+        {
+          "name": "JWT_SECRET",
+          "value": "ouLgJO8XBJqQnJhIZJi/X4RagranHhv7/RRBTCDdBrfEQKRUBc3oFSRUqeT07+DHfMF6F3qdB1jdf6GuiKwW0w=="
+        },
+        {
+          "name": "SPRING_DATASOURCE_PASSWORD",
+          "value": "pirate123!"
+        },
+        {
+          "name": "JWT_REFRESH_TOKEN_EXPIRATION",
+          "value": "1209600000"
+        },
+        {
+          "name": "JWT_ACCESS_TOKEN_EXPIRATION",
+          "value": "3600000"
+        },
+        {
+          "name": "REDIS_SSL",
+          "value": "false"
+        },
+        {
+          "name": "SPRING_JPA_DATABASE_PLATFORM",
+          "value": "org.hibernate.dialect.PostgreSQLDialect"
+        }
+      ],
+      "essential": true,
+      "image": "767800793763.dkr.ecr.ap-northeast-2.amazonaws.com/resumate-repo@sha256:4d30095cb36a6f70b4ea49028d0505f8968900bce2aa373d13a54a7b0e776615",
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/resumate-app",
+          "awslogs-create-group": "true",
+          "awslogs-region": "ap-northeast-2",
+          "awslogs-stream-prefix": "ecs"
+        },
+        "secretOptions": []
+      },
+      "mountPoints": [],
+      "name": "app",
+      "portMappings": [
+        {
+          "appProtocol": "http",
+          "containerPort": 8080,
+          "hostPort": 8080,
+          "name": "app-8080-tcp",
+          "protocol": "tcp"
+        }
+      ],
+      "systemControls": [],
+      "volumesFrom": []
+    }
+  ],
+  "cpu": "512",
+  "enableFaultInjection": false,
+  "ephemeralStorage": {
+    "sizeInGiB": 21
+  },
+  "executionRoleArn": "arn:aws:iam::767800793763:role/resumate-ecs-execution-role",
+  "family": "resumate-app-task",
+  "memory": "1024",
+  "networkMode": "awsvpc",
+  "placementConstraints": [],
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "runtimePlatform": {
+    "cpuArchitecture": "X86_64",
+    "operatingSystemFamily": "LINUX"
+  },
+  "taskRoleArn": "arn:aws:iam::767800793763:role/resumate-ecs-task-role",
+  "volumes": [],
+  "tags": []
+}
