@@ -4,7 +4,7 @@ services:
       context: ./postgresql
       dockerfile: Dockerfile
     environment:
-      - POSTGRES_DB=${DB_URL}
+      - POSTGRES_DB=${BASE_DB}
       - POSTGRES_USER=${DB_USERNAME}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
       - POSTGRES_INITDB_ARGS=--locale=ko_KR.UTF-8
