@@ -2,7 +2,9 @@ package com.careerpirates.resumate.review.docs;
 
 import com.careerpirates.resumate.global.message.exception.core.ErrorResponse;
 import com.careerpirates.resumate.global.message.success.SuccessResponse;
+import com.careerpirates.resumate.review.application.dto.request.ReviewListRequest;
 import com.careerpirates.resumate.review.application.dto.request.ReviewRequest;
+import com.careerpirates.resumate.review.application.dto.response.ReviewListResponse;
 import com.careerpirates.resumate.review.application.dto.response.ReviewResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -11,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -67,4 +70,12 @@ public interface ReviewControllerDocs {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
     })
     SuccessResponse<ReviewResponse> getReview(@PathVariable Long id);
+
+    @Operation(method = "GET", summary = "회고 목록 조회", description = "전체 회고 목록을 조회합니다. 임시 저장 상태인 회고와 휴지통의 회고를 조회할 수도 있습니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "회고 목록 조회에 성공하였습니다."),
+            @ApiResponse(responseCode = "400", description = "요청이 잘못되었습니다.",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    })
+    SuccessResponse<ReviewListResponse> getReviews(@ModelAttribute ReviewListRequest request);
 }
