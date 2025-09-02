@@ -29,7 +29,7 @@ public class Analysis extends BaseEntity {
     @Column(name = "status", nullable = false)
     private AnalysisStatus status;
 
-    @Column(name = "input", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "input", columnDefinition = "TEXT")
     private String input;
 
     @Column(name = "output", columnDefinition = "TEXT")
