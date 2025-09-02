@@ -9,6 +9,10 @@ import com.careerpirates.resumate.folder.domain.Folder;
 import com.careerpirates.resumate.folder.infrastructure.FolderRepository;
 import com.careerpirates.resumate.folder.message.exception.FolderError;
 import com.careerpirates.resumate.global.message.exception.core.BusinessException;
+import com.careerpirates.resumate.review.application.dto.response.ReviewResponse;
+import com.careerpirates.resumate.review.application.service.ReviewService;
+import com.careerpirates.resumate.review.domain.Review;
+import com.careerpirates.resumate.review.infrastructure.ReviewRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,11 +20,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 import static com.careerpirates.resumate.folder.factory.FolderTestFactory.createDefaultFolders;
 import static com.careerpirates.resumate.folder.factory.FolderTestFactory.createFolderRequest;
+import static com.careerpirates.resumate.review.application.factory.ReviewTestFactory.createReviewRequest;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
@@ -30,7 +36,11 @@ class FolderServiceTest {
     @Autowired
     private FolderService folderService;
     @Autowired
+    private ReviewService reviewService;
+    @Autowired
     private FolderRepository folderRepository;
+    @Autowired
+    private ReviewRepository reviewRepository;
 
     @BeforeEach
     void setUp() {
@@ -39,6 +49,7 @@ class FolderServiceTest {
 
     @AfterEach
     void tearDown() {
+        reviewRepository.deleteAllInBatch();
         folderRepository.deleteAllInBatch();
     }
 
@@ -133,6 +144,9 @@ class FolderServiceTest {
     void deleteSubFolder_success() {
         // given
         Folder folderAA = folderRepository.findByName("AA").get();
+        ReviewResponse review = reviewService.createReview(
+                createReviewRequest(folderAA.getId(), "회고AA", true, LocalDate.of(2025, 9, 15))
+        );
 
         // when
         folderService.deleteFolder(folderAA.getId());
@@ -144,6 +158,9 @@ class FolderServiceTest {
         assertThat(resultAA.isPresent()).isFalse();
         Optional<Folder> resultAB = folderRepository.findByName("AB");
         assertThat(resultAB.isPresent()).isTrue();
+        Review foundReview = reviewRepository.findById(review.getId()).orElseThrow();
+        assertThat(foundReview).extracting("title", "isDeleted")
+                .containsExactly("회고AA", true);
     }
 
     @Test
