@@ -1,14 +1,45 @@
 services:
-  mysql:
-    image: 'mysql:latest'
+  postgresql:
+    build:
+      context: ./postgresql
+      dockerfile: Dockerfile
     environment:
-      - 'MYSQL_DATABASE=mydatabase'
-      - 'MYSQL_PASSWORD=secret'
-      - 'MYSQL_ROOT_PASSWORD=verysecret'
-      - 'MYSQL_USER=myuser'
+      - POSTGRES_DB=${BASE_DB}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_INITDB_ARGS=--locale=ko_KR.UTF-8
+      - TZ=UTC
+      - PGTZ=UTC
     ports:
-      - '3306'
+      - "${DB_PORT}:5432"
   redis:
-    image: 'redis:latest'
+    image: redis:latest
+    environment:
+      - TZ=UTC
+    networks:
+      - redis-network
     ports:
-      - '6379'
+      - "${REDIS_PORT}:6379"
+    volumes:
+      - ./redis/data:/data
+      - ./redis/config/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+  redisinsight:
+    image: redis/redisinsight:latest
+    environment:
+      - TZ=UTC
+    networks:
+      - redis-network
+    ports:
+      - "${REDIS_INSIGHT_PORT}:5540"
+    volumes:
+      - redis_insight_volume_data:/db
+    depends_on:
+      - redis
+networks:
+  redis-network:
+    driver: bridge
+
+volumes:
+  redis_volume_data:
+  redis_insight_volume_data:
