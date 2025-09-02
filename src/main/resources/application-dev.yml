@@ -4,6 +4,10 @@ spring:
   config:
     activate:
       on-profile: dev
+  docker:
+    compose:
+      file: ./docker-compose.local.yaml
+      lifecycle-management: start_only
   data:
     redis:
       host: localhost
@@ -24,15 +28,19 @@ spring:
           time_zone: UTC
           batch_size: 500
 
+oauth:
+  login-redirect-url: http://localhost:5173
+
 cors:
-  allowed-origins: http://localhost:3000
-  allowed-methods: GET, POST, PUT, DELETE
-  allowed-headers: Access-Control-Allow-Origin, Content-type, Access-Control-Allow-Headers, Authorization, X-Requested-With
+  allowed-origin-patterns: http://localhost:*
+  allowed-origin-methods: GET, POST, PUT, DELETE, OPTIONS
+  allowed-origin-headers: "*"
 
 jwt:
   secret: b0a4ff363885bcc010ab2d331ab5f3d957f7e8aa8233a175d039acd1c2affd45
-  access-token-expiration-duration: 1800000
-  refresh-token-expiration-duration: 604800000
+  expiration:
+    access: 3600
+    refresh: 2592000
 
 cookie:
   domain: localhost
