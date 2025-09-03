@@ -3,6 +3,7 @@ package com.careerpirates.resumate.global.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -16,7 +17,8 @@ public class SecurityConfig {
                         .anyRequest().permitAll()
                 )
                 // CSRF 비활성화 (테스트 시 편의용)
-                .csrf(csrf -> csrf.disable());
+                .csrf(csrf -> csrf.disable())
+                .formLogin(AbstractHttpConfigurer::disable);
 
         return http.build();
     }
