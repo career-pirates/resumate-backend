@@ -22,6 +22,7 @@ public class CorsConfig {
 		config.setAllowedOriginPatterns(corsProperties.allowedOriginPatterns());
 		config.setAllowedMethods(corsProperties.allowedOriginMethods());
 		config.setAllowedHeaders(corsProperties.allowedOriginHeaders());
+		config.setMaxAge(3600L);
 
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**", config);
