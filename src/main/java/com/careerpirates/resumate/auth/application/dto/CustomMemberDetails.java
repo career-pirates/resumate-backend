@@ -22,12 +22,12 @@ public record CustomMemberDetails(Member member) implements UserDetails {
 
 	@Override
 	public String getPassword() {
-		return member.getEmail();
+		return "";
 	}
 
 	@Override
 	public String getUsername() {
-		return "";
+		return member.getEmail();
 	}
 
 	@Override
