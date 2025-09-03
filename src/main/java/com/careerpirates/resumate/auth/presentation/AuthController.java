@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.careerpirates.resumate.auth.application.dto.response.CurrentUserDto;
 import com.careerpirates.resumate.auth.application.dto.CustomMemberDetails;
 import com.careerpirates.resumate.auth.application.dto.JwtToken;
+import com.careerpirates.resumate.auth.application.dto.response.CurrentUserDto;
 import com.careerpirates.resumate.auth.application.service.AuthService;
 import com.careerpirates.resumate.auth.docs.AuthControllerDocs;
 import com.careerpirates.resumate.auth.infrastructure.JwtRepository;
@@ -20,6 +20,7 @@ import com.careerpirates.resumate.auth.message.success.AuthSuccessCode;
 import com.careerpirates.resumate.auth.util.cookie.CookieManager;
 import com.careerpirates.resumate.auth.util.jwt.JwtExtractor;
 import com.careerpirates.resumate.auth.util.jwt.JwtIssuer;
+import com.careerpirates.resumate.auth.util.jwt.JwtValidator;
 import com.careerpirates.resumate.global.message.exception.core.BusinessException;
 import com.careerpirates.resumate.global.message.success.SuccessResponse;
 
@@ -36,6 +37,7 @@ public class AuthController implements AuthControllerDocs {
 	private final JwtRepository jwtRepository;
 	private final JwtIssuer jwtIssuer;
 	private final JwtExtractor jwtExtractor;
+	private final JwtValidator jwtValidator;
 
 	@PostMapping("/logout")
 	public SuccessResponse<?> logout(
@@ -94,16 +96,24 @@ public class AuthController implements AuthControllerDocs {
 			throw new BusinessException(JwtErrorCode.REFRESH_TOKEN_NOT_FOUND);
 		}
 
+		String valid = jwtValidator.validateToken(refreshToken);
+		if (!valid.equals("OK")) {
+			throw new BusinessException(JwtErrorCode.REFRESH_TOKEN_INVALID);
+		}
+
 		return refreshToken;
 	}
 
 	private String extractSubjectFromToken(String refreshToken) {
-		String subject = jwtExtractor.parseClaims(refreshToken).getSubject();
-		if (!StringUtils.hasText(subject)) {
-			throw new BusinessException(JwtErrorCode.REFRESH_TOKEN_NOT_FOUND);
+		try {
+			String subject = jwtExtractor.parseClaims(refreshToken).getSubject();
+			if (!StringUtils.hasText(subject)) {
+				throw new BusinessException(JwtErrorCode.REFRESH_TOKEN_INVALID);
+			}
+			return subject;
+		} catch (Exception ex) {
+			throw new BusinessException(JwtErrorCode.REFRESH_TOKEN_INVALID);
 		}
-
-		return subject;
 	}
 
 	private void addReissuedAccessTokenToResponse(HttpServletResponse response, JwtToken accessToken) {
