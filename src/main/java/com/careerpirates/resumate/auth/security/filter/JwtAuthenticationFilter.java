@@ -33,6 +33,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			FilterChain filterChain) throws ServletException, IOException {
 		String token = extractor.resolveToken(request);
 
+		// 토큰이 없으면 그냥 체인 진행 (permitAll 엔드포인트 보장)
+		if (!StringUtils.hasText(token)) {
+			filterChain.doFilter(request, response);
+			return;
+		}
+
 		String validResult = validator.validateToken(token);
 		if (!validResult.equals("OK")) {
 			sendUnauthorizedResponse(response, validResult);
@@ -67,6 +73,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 	private void sendUnauthorizedResponse(HttpServletResponse response, String message)
 			throws IOException {
+		SecurityContextHolder.clearContext();
 		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 		response.setContentType("application/json;charset=UTF-8");
 
