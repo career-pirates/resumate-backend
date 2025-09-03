@@ -16,6 +16,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors(Customizer.withDefaults())
+                .csrf(AbstractHttpConfigurer::disable)
                 // 모든 요청 허용
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
@@ -27,8 +28,6 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().permitAll()
                 )
-                // CSRF 비활성화 (테스트 시 편의용)
-                .csrf(csrf -> csrf.disable())
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable);
 
