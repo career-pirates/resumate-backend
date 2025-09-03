@@ -1,8 +1,8 @@
 package com.careerpirates.resumate.auth.application.service;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -53,44 +53,55 @@ public class AuthService extends DefaultOAuth2UserService {
 	}
 
 	private Map<String, Object> getUserInfoFromGoogle(OAuth2User oAuth2User) {
-		return new HashMap<>(){{
-			put("id", oAuth2User.getAttribute("sub"));
-			put("provider", OAuthProvider.GOOGLE);
-			put("email", oAuth2User.getAttribute("email"));
-		}};
+		Object id = oAuth2User.getAttribute("sub");
+		Object email = oAuth2User.getAttribute("email");
+
+		if (Objects.isNull(id) || Objects.isNull(email)) {
+			throw new BusinessException(OAuthErrorCode.GOOGLE_OAUTH2_DATA_MISSING);
+		}
+
+		return Map.of(
+			"id", id,
+			"provider", OAuthProvider.GOOGLE,
+			"email", email
+		);
 	}
 
 	private Map<String, Object> getUserInfoFromNaver(OAuth2User oAuth2User) {
 		Map<String, Object> naverAccount = oAuth2User.getAttribute("response");
-		if (naverAccount == null) {
+		if (Objects.isNull(naverAccount) || Objects.isNull(naverAccount.get("id")) || Objects.isNull(
+			naverAccount.get("email"))) {
 			throw new BusinessException(OAuthErrorCode.NAVER_OAUTH2_DATA_MISSING);
 		}
 
-		return new HashMap<>(){{
-			put("id", naverAccount.get("id"));
-			put("provider", OAuthProvider.NAVER);
-			put("email", naverAccount.get("email"));
-		}};
+		return Map.of(
+			"id", naverAccount.get("id"),
+			"provider", OAuthProvider.NAVER,
+			"email", naverAccount.get("email")
+		);
 	}
 
 	private Map<String, Object> getUserInfoFromKakao(OAuth2User oAuth2User) {
 		Map<String, Object> kakaoAccount = oAuth2User.getAttribute("kakao_account");
-		if (kakaoAccount == null) {
+		Object id = oAuth2User.getAttribute("id");
+		Object email = kakaoAccount == null ? null : kakaoAccount.get("email");
+
+		if (id == null || email == null) {
 			throw new BusinessException(OAuthErrorCode.KAKAO_OAUTH2_DATA_MISSING);
 		}
 
-		return new HashMap<>(){{
-			put("id", oAuth2User.getAttribute("id"));
-			put("provider", OAuthProvider.KAKAO);
-			put("email", kakaoAccount.get("email"));
-		}};
+		return Map.of(
+			"id", id,
+			"provider", OAuthProvider.KAKAO,
+			"email", email
+		);
 	}
 
 	private OAuth2User createOAuth2User(Map<String, Object> attributes) {
 		return new DefaultOAuth2User(
 			Collections.singleton(new SimpleGrantedAuthority(Role.USER.name())),
 			attributes,
-			"email"
+			"id"
 		);
 	}
 }
