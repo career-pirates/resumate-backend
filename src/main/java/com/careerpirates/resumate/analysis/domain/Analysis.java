@@ -3,6 +3,7 @@ package com.careerpirates.resumate.analysis.domain;
 import com.careerpirates.resumate.global.domain.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -62,7 +63,8 @@ public class Analysis extends BaseEntity {
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
-    public Analysis(Long memberId, Long folderId, String input) {
+    @Builder
+    public Analysis(Long memberId, Long folderId) {
         this.memberId = memberId;
         this.folderId = folderId;
         this.status = AnalysisStatus.IDLE;

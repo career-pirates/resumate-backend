@@ -36,3 +36,10 @@ jwt:
 
 cookie:
   domain: localhost
+
+openai:
+  api-key: ${OPENAI_API_KEY}
+  base-url: https://api.openai.com/v1
+  prompt:
+    id: pmpt_68b69bf0c14081959f3bab045f17ccc803b70565310d26f7
+    version: 2

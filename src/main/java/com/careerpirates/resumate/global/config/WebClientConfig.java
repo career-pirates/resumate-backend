@@ -3,6 +3,7 @@ package com.careerpirates.resumate.global.config;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -12,6 +13,7 @@ import reactor.netty.http.client.HttpClient;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Configuration
 public class WebClientConfig {
 
@@ -27,6 +29,11 @@ public class WebClientConfig {
                 );
 
         return WebClient.builder()
+                .filter((request, next) -> {
+                    log.info("Request: {} {}", request.method(), request.url());
+                    return next.exchange(request)
+                            .doOnNext(response -> log.info("Response status: {}", response.statusCode()));
+                })
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(1024 * 1024)) // 1MB 메모리 제한
                 .build();
