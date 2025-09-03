@@ -1,0 +1,57 @@
+{
+  "containerDefinitions": [
+    {
+      "cpu": 0,
+      "environment": [
+        {
+          "name": "SPRING_PROFILES_ACTIVE",
+          "value": "prod"
+        }
+      ],
+      "essential": true,
+      "image": "767800793763.dkr.ecr.ap-northeast-2.amazonaws.com/resumate-repo@sha256:4d30095cb36a6f70b4ea49028d0505f8968900bce2aa373d13a54a7b0e776615",
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/resumate-app",
+          "awslogs-create-group": "true",
+          "awslogs-region": "ap-northeast-2",
+          "awslogs-stream-prefix": "ecs"
+        },
+        "secretOptions": []
+      },
+      "mountPoints": [],
+      "name": "app",
+      "portMappings": [
+        {
+          "appProtocol": "http",
+          "containerPort": 8080,
+          "hostPort": 8080,
+          "name": "app-8080-tcp",
+          "protocol": "tcp"
+        }
+      ],
+      "systemControls": [],
+      "volumesFrom": []
+    }
+  ],
+  "cpu": "512",
+  "ephemeralStorage": {
+    "sizeInGiB": 21
+  },
+  "executionRoleArn": "arn:aws:iam::767800793763:role/resumate-ecs-execution-role",
+  "family": "resumate-app-task",
+  "memory": "1024",
+  "networkMode": "awsvpc",
+  "placementConstraints": [],
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "runtimePlatform": {
+    "cpuArchitecture": "X86_64",
+    "operatingSystemFamily": "LINUX"
+  },
+  "taskRoleArn": "arn:aws:iam::767800793763:role/resumate-ecs-task-role",
+  "volumes": [],
+  "tags": []
+}
