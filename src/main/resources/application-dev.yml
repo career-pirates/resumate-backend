@@ -32,9 +32,16 @@ oauth:
   login-redirect-url: http://localhost:5173
 
 cors:
-  allowed-origin-patterns: http://localhost:*
-  allowed-origin-methods: GET, POST, PUT, DELETE, OPTIONS
-  allowed-origin-headers: "*"
+  allowed-origin-patterns:
+    - http://localhost:5173
+  allowed-origin-methods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - OPTIONS
+  allowed-origin-headers:
+    - "*"
 
 jwt:
   secret: b0a4ff363885bcc010ab2d331ab5f3d957f7e8aa8233a175d039acd1c2affd45
