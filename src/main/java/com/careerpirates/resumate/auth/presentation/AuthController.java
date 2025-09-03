@@ -74,7 +74,8 @@ public class AuthController implements AuthControllerDocs {
 		String refreshToken = extractRefreshTokenFromRequest(request);
 		String subject = extractSubjectFromToken(refreshToken);
 
-		long memberId = Long.parseLong(subject);
+		long memberId = parseSubjectToLong(subject);
+
 		String key = memberId + ":" + deviceId;
 
 		if (jwtRepository.matches(key, refreshToken)) {
@@ -93,7 +94,13 @@ public class AuthController implements AuthControllerDocs {
 			throw new BusinessException(JwtErrorCode.REFRESH_TOKEN_NOT_FOUND);
 		}
 
-		String valid = jwtValidator.validateToken(refreshToken);
+		String valid;
+		try {
+			valid = jwtValidator.validateToken(refreshToken);
+		} catch (Exception e) {
+			throw new BusinessException(JwtErrorCode.REFRESH_TOKEN_INVALID);
+		}
+		
 		if (!valid.equals("OK")) {
 			throw new BusinessException(JwtErrorCode.REFRESH_TOKEN_INVALID);
 		}
@@ -109,6 +116,14 @@ public class AuthController implements AuthControllerDocs {
 			}
 			return subject;
 		} catch (Exception ex) {
+			throw new BusinessException(JwtErrorCode.REFRESH_TOKEN_INVALID);
+		}
+	}
+
+	private long parseSubjectToLong(String subject) {
+		try {
+			return Long.parseLong(subject);
+		} catch (NumberFormatException e) {
 			throw new BusinessException(JwtErrorCode.REFRESH_TOKEN_INVALID);
 		}
 	}

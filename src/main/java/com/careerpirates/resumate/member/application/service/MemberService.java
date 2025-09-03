@@ -43,7 +43,7 @@ public class MemberService {
 			.build();
 
 		try {
-			return memberRepository.save(member);
+			return memberRepository.saveAndFlush(member);
 		} catch (DataIntegrityViolationException e) {
 			return memberRepository.findByProviderAndProviderUserId(provider, providerUserId).orElseThrow(() -> e);
 		}
