@@ -14,12 +14,21 @@ public class SecurityConfig {
         http
                 // 모든 요청 허용
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/api-docs/**",
+                                "/actuator/health"
+                        ).permitAll()
                         .anyRequest().permitAll()
                 )
                 // CSRF 비활성화 (테스트 시 편의용)
                 .csrf(csrf -> csrf.disable())
-                .formLogin(AbstractHttpConfigurer::disable);
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable);
 
         return http.build();
     }
 }
+
