@@ -1,6 +1,6 @@
 package com.careerpirates.resumate.analysis.application.service;
 
-import com.careerpirates.resumate.analysis.application.config.OpenAIProperties;
+import com.careerpirates.resumate.analysis.config.OpenAIProperties;
 import com.careerpirates.resumate.analysis.application.dto.response.GPTResponse;
 import com.careerpirates.resumate.analysis.event.AnalysisCompletedEvent;
 import com.careerpirates.resumate.analysis.event.AnalysisErrorEvent;

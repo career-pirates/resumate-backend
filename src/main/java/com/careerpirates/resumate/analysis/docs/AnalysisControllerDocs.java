@@ -19,7 +19,7 @@ public interface AnalysisControllerDocs {
 
     @Operation(method = "POST", summary = "회고 분석 요청", description = "회고 분석을 요청합니다. 요청은 비동기로 처리됩니다.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "회고 작성에 성공하였습니다."),
+            @ApiResponse(responseCode = "200", description = "회고 분석 요청에 성공하였습니다."),
             @ApiResponse(responseCode = "400", description = "요청이 올바르지 않습니다.",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "404", description = "폴더를 찾을 수 없습니다.",
@@ -29,7 +29,7 @@ public interface AnalysisControllerDocs {
 
     @Operation(method = "GET", summary = "분석 결과 조회", description = "회고 분석 결과를 조회합니다.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "회고 작성에 성공하였습니다."),
+            @ApiResponse(responseCode = "200", description = "분석 결과 조회에 성공하였습니다."),
             @ApiResponse(responseCode = "400", description = "요청이 올바르지 않습니다.",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "404", description = "분석 객체를 찾을 수 없습니다.",

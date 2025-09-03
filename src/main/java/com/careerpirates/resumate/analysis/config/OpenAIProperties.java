@@ -1,4 +1,4 @@
-package com.careerpirates.resumate.analysis.application.config;
+package com.careerpirates.resumate.analysis.config;
 
 import lombok.Getter;
 import lombok.Setter;
