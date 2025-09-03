@@ -51,6 +51,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
 
+    // AWS Secret Manager
+    implementation platform("io.awspring.cloud:spring-cloud-aws-dependencies:3.1.0")
+    implementation "io.awspring.cloud:spring-cloud-aws-starter-secrets-manager"
+
     // 테스트
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
