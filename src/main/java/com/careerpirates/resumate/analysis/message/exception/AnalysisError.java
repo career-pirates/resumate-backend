@@ -10,7 +10,8 @@ import org.springframework.http.HttpStatus;
 public enum AnalysisError implements ErrorCode {
 
     FOLDER_EMPTY("폴더에 저장된 회고가 없습니다.", HttpStatus.BAD_REQUEST, "AN_001"),
-    ANALYSIS_NOT_FOUND("분석 객체를 찾을 수 없습니다.", HttpStatus.NOT_FOUND, "AN_002");
+    ANALYSIS_NOT_FOUND("분석 객체를 찾을 수 없습니다.", HttpStatus.NOT_FOUND, "AN_002"),
+    NO_FOLDER_REQUESTED("분석할 폴더 ID가 전달되지 않았습니다.", HttpStatus.BAD_REQUEST, "AN_003");
 
     private final String message;
     private final HttpStatus status;
