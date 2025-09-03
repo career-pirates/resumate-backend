@@ -1,5 +1,6 @@
 package com.careerpirates.resumate.analysis.presentation;
 
+import com.careerpirates.resumate.analysis.application.dto.response.AnalysisResponse;
 import com.careerpirates.resumate.analysis.application.service.AnalysisService;
 import com.careerpirates.resumate.analysis.docs.AnalysisControllerDocs;
 import com.careerpirates.resumate.analysis.message.exception.AnalysisError;
@@ -7,10 +8,7 @@ import com.careerpirates.resumate.analysis.message.success.AnalysisSuccess;
 import com.careerpirates.resumate.global.message.exception.core.BusinessException;
 import com.careerpirates.resumate.global.message.success.SuccessResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -32,5 +30,12 @@ public class AnalysisController implements AnalysisControllerDocs {
         }
 
         return SuccessResponse.of(AnalysisSuccess.REQUEST_ANALYSIS);
+    }
+
+    @GetMapping("/{folderId}")
+    public SuccessResponse<AnalysisResponse> getAnalysis(@PathVariable Long folderId) {
+
+        AnalysisResponse response = analysisService.getAnalysis(folderId);
+        return SuccessResponse.of(AnalysisSuccess.GET_ANALYSIS, response);
     }
 }

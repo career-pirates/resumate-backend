@@ -9,7 +9,8 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum AnalysisSuccess implements SuccessCode {
 
-    REQUEST_ANALYSIS(HttpStatus.OK, "회고 분석 요청에 성공하였습니다.");
+    REQUEST_ANALYSIS(HttpStatus.OK, "회고 분석 요청에 성공하였습니다."),
+    GET_ANALYSIS(HttpStatus.OK, "분석 결과 조회에 성공하였습니다.");
 
     private final HttpStatus status;
     private final String message;

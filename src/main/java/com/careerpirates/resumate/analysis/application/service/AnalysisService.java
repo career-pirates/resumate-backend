@@ -1,5 +1,6 @@
 package com.careerpirates.resumate.analysis.application.service;
 
+import com.careerpirates.resumate.analysis.application.dto.response.AnalysisResponse;
 import com.careerpirates.resumate.analysis.application.dto.response.AnalysisResultDto;
 import com.careerpirates.resumate.analysis.application.dto.response.GPTResponse;
 import com.careerpirates.resumate.analysis.domain.Analysis;
@@ -75,10 +76,10 @@ public class AnalysisService {
         try {
             log.info(response.getOutput().toString());
             String output = response.getOutput().get(1).getContent().get(0).getText();
-            AnalysisResultDto result = objectMapper.readValue(output, AnalysisResultDto.class);
+            analysis.setOutput(output);
 
+            AnalysisResultDto result = objectMapper.readValue(output, AnalysisResultDto.class);
             analysis.finishAnalysis(
-                    output,
                     result.getSummary(),
                     result.getStrength(),
                     result.getSuggestion(),
@@ -106,6 +107,14 @@ public class AnalysisService {
 
         analysis.setError(event.getE().getMessage());
         analysisRepository.save(analysis);
+    }
+
+    @Transactional(readOnly = true)
+    public AnalysisResponse getAnalysis(Long folderId) {
+        Analysis analysis = analysisRepository.findTop1ByFolderIdOrderByCreatedAtDesc(folderId)
+                .orElseThrow(() -> new BusinessException(AnalysisError.ANALYSIS_NOT_FOUND));
+
+        return AnalysisResponse.of(analysis);
     }
 
     private String getUserInput(List<Review> reviews) {
