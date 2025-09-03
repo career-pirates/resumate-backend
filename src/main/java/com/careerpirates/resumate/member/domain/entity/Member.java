@@ -14,7 +14,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,13 +22,11 @@ import lombok.NoArgsConstructor;
 @Table(
 	name = "member",
 	uniqueConstraints = {
-		@UniqueConstraint(name = "uk_member_provider_user", columnNames = {"provider", "provider_user_id"}),
-		@UniqueConstraint(name = "uk_member_email", columnNames = {"email"})
+		@UniqueConstraint(name = "uk_member_provider_user", columnNames = {"provider", "provider_user_id"})
+		// @UniqueConstraint(name = "uk_member_email", columnNames = {"email"})
 	}
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder
 @Getter
 public class Member extends BaseEntity {
 
@@ -54,4 +51,17 @@ public class Member extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	@Column(name = "role", nullable = false)
 	private Role role;
+
+	@Builder
+	public Member(String providerUserId, OAuthProvider provider, String email, String nickname, Role role) {
+		this.providerUserId = providerUserId;
+		this.provider = provider;
+		this.email = email;
+		this.nickname = nickname;
+		this.role = role;
+	}
+
+	public void updateNickName(String nickname) {
+		this.nickname = nickname;
+	}
 }
