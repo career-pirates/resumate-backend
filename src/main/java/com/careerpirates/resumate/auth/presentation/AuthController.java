@@ -76,11 +76,7 @@ public class AuthController implements AuthControllerDocs {
 		long memberId = Long.parseLong(subject);
 		String key = memberId + ":" + deviceId;
 
-		// Redis에 저장된 리프레쉬 토큰 조회
-		String redisRefreshToken = jwtRepository.findByKey(key)
-			.orElseThrow(() -> new BusinessException(JwtErrorCode.REFRESH_TOKEN_INVALID));
-
-		if (refreshToken.equals(redisRefreshToken)) {
+		if (jwtRepository.matches(key, refreshToken)) {
 			JwtToken accessToken = jwtIssuer.issueAccessToken(memberId);
 			addReissuedAccessTokenToResponse(response, accessToken);
 		} else {
