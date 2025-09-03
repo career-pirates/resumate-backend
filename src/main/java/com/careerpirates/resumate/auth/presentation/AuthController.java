@@ -38,6 +38,7 @@ public class AuthController implements AuthControllerDocs {
 	private final JwtIssuer jwtIssuer;
 	private final JwtExtractor jwtExtractor;
 	private final JwtValidator jwtValidator;
+	private final CookieManager cookieManager;
 
 	@PostMapping("/logout")
 	public SuccessResponse<?> logout(
@@ -48,12 +49,12 @@ public class AuthController implements AuthControllerDocs {
 		// 액세스, 리프레쉬 토큰 쿠키에서 제거
 		response.addHeader(
 			HttpHeaders.SET_COOKIE,
-			CookieManager.expireCookie("accessToken", true, "None").toString()
+			cookieManager.expireCookie("accessToken", true, "None").toString()
 		);
 
 		response.addHeader(
 			HttpHeaders.SET_COOKIE,
-			CookieManager.expireCookie("refreshToken", true, "None").toString()
+			cookieManager.expireCookie("refreshToken", true, "None").toString()
 		);
 
 		// Redis에서 리프레쉬 토큰 제거
@@ -115,7 +116,7 @@ public class AuthController implements AuthControllerDocs {
 	private void addReissuedAccessTokenToResponse(HttpServletResponse response, JwtToken accessToken) {
 		response.addHeader(
 			HttpHeaders.SET_COOKIE,
-			CookieManager.setCookie(
+			cookieManager.setCookie(
 				accessToken.type(),
 				accessToken.value(),
 				accessToken.duration(),

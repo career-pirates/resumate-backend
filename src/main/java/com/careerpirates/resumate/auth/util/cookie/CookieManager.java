@@ -8,15 +8,17 @@ import java.util.Arrays;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
+import org.springframework.stereotype.Component;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+@Component
 public class CookieManager {
 
 	@Value("${cookie.domain}")
-	private static String domain;
+	private String domain;
 
-	public static ResponseCookie setCookie(String name, String value, Duration maxAge, boolean httpOnly, boolean secure, String sameSite) {
+	public ResponseCookie setCookie(String name, String value, Duration maxAge, boolean httpOnly, boolean secure, String sameSite) {
 		return ResponseCookie.from(name, URLEncoder.encode(value, StandardCharsets.UTF_8))
 			.httpOnly(httpOnly)
 			.secure(secure)
@@ -27,7 +29,7 @@ public class CookieManager {
 			.build();
 	}
 
-	public static String getCookieValue(HttpServletRequest request, String name) {
+	public String getCookieValue(HttpServletRequest request, String name) {
 		if (request.getCookies() == null) return null;
 		return Arrays.stream(request.getCookies())
 			.filter(cookie -> name.equals(cookie.getName()))
@@ -36,7 +38,7 @@ public class CookieManager {
 			.orElse(null);
 	}
 
-	public static ResponseCookie expireCookie(String name, boolean secure, String sameSite) {
+	public ResponseCookie expireCookie(String name, boolean secure, String sameSite) {
 		return ResponseCookie.from(name, "")
 			.path("/")
 			.httpOnly(true)

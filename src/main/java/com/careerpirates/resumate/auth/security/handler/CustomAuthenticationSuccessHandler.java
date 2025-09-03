@@ -26,6 +26,7 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
 
 	private final MemberService memberService;
 	private final JwtIssuer jwtIssuer;
+	private final CookieManager cookieManager;
 
 	@Value("${oauth.login-redirect-url}")
 	String loginRedirectUrl;
@@ -92,7 +93,7 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
 	private void addTokenToHeader(HttpServletResponse response, JwtToken token) {
 		response.addHeader(
 			HttpHeaders.SET_COOKIE,
-			CookieManager.setCookie(
+			cookieManager.setCookie(
 				token.type(),
 				token.value(),
 				token.duration(),

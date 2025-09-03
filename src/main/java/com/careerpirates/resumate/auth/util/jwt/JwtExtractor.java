@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 public class JwtExtractor {
 
 	private final JwtProperties jwtProperties;
+	private final CookieManager cookieManager;
 
 	/**
 	 * 클레임 추출
@@ -38,10 +39,10 @@ public class JwtExtractor {
 	}
 
 	public String resolveToken(HttpServletRequest request) {
-		return CookieManager.getCookieValue(request, "accessToken");
+		return cookieManager.getCookieValue(request, "accessToken");
 	}
 
 	public String resolveRefreshToken(HttpServletRequest request) {
-		return CookieManager.getCookieValue(request, "refreshToken");
+		return cookieManager.getCookieValue(request, "refreshToken");
 	}
 }
