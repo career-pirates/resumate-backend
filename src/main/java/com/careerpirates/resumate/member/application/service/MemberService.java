@@ -1,5 +1,6 @@
 package com.careerpirates.resumate.member.application.service;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,11 +20,11 @@ public class MemberService {
 	private final MemberRepository memberRepository;
 
 	@Transactional
-	public Member findOrCreateMember(String id, OAuthProvider provider, String email) {
+	public Member findOrCreateMember(String providerUserId, OAuthProvider provider, String email) {
 		validEmail(email);
 
-		return memberRepository.findByProviderAndEmail(provider, email)
-			.orElseGet(() -> createMember(id, provider, email));
+		return memberRepository.findByProviderAndProviderUserId(provider, providerUserId)
+			.orElseGet(() -> createMember(providerUserId, provider, email));
 	}
 
 	private void validEmail(String email) {
@@ -32,15 +33,19 @@ public class MemberService {
 		}
 	}
 
-	private Member createMember(String id, OAuthProvider provider, String email) {
+	private Member createMember(String providerUserId, OAuthProvider provider, String email) {
 		Member member = Member.builder()
 			.provider(provider)
-			.providerUserId(id)
+			.providerUserId(providerUserId)
 			.email(email)
 			.nickname("")
 			.role(Role.USER)
 			.build();
 
-		return memberRepository.save(member);
+		try {
+			return memberRepository.save(member);
+		} catch (DataIntegrityViolationException e) {
+			return memberRepository.findByProviderAndProviderUserId(provider, providerUserId).orElseThrow(() -> e);
+		}
 	}
 }

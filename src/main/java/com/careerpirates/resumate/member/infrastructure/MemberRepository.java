@@ -11,4 +11,6 @@ import com.careerpirates.resumate.member.domain.enums.OAuthProvider;
 @Repository
 public interface MemberRepository extends JpaRepository<Member, Long> {
 	Optional<Member> findByProviderAndEmail(OAuthProvider provider, String email);
+
+	Optional<Member> findByProviderAndProviderUserId(OAuthProvider provider, String providerUserId);
 }
