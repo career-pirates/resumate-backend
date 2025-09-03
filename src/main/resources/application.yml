@@ -1,3 +1,5 @@
 spring:
+  config:
+    import: optional:file:.env[.properties], classpath:oauth2.yml
   profiles:
     active: dev
