@@ -1,5 +1,6 @@
 package com.careerpirates.resumate.analysis.presentation;
 
+import com.careerpirates.resumate.analysis.application.dto.response.AnalysisListResponse;
 import com.careerpirates.resumate.analysis.application.dto.response.AnalysisResponse;
 import com.careerpirates.resumate.analysis.application.service.AnalysisService;
 import com.careerpirates.resumate.analysis.docs.AnalysisControllerDocs;
@@ -33,9 +34,18 @@ public class AnalysisController implements AnalysisControllerDocs {
     }
 
     @GetMapping("/{folderId}")
-    public SuccessResponse<AnalysisResponse> getAnalysis(@PathVariable Long folderId) {
+    public SuccessResponse<AnalysisResponse> getAnalysis(@PathVariable Long folderId,
+                                                         @RequestParam(required = false) Long id) {
 
-        AnalysisResponse response = analysisService.getAnalysis(folderId);
+        AnalysisResponse response = analysisService.getAnalysis(folderId, id);
         return SuccessResponse.of(AnalysisSuccess.GET_ANALYSIS, response);
+    }
+
+    @GetMapping
+    public SuccessResponse<AnalysisListResponse> getAnalysisList(@RequestParam(defaultValue = "0") int page,
+                                                                 @RequestParam(defaultValue = "10") int size) {
+
+        AnalysisListResponse response = analysisService.getAnalysisList(page, size);
+        return SuccessResponse.of(AnalysisSuccess.GET_ANALYSIS_LIST, response);
     }
 }
