@@ -3,6 +3,3 @@ spring:
     import: optional:file:.env[.properties], classpath:oauth2.yml
   profiles:
     active: dev
-
-  config:
-    import: optional:file:.env[.properties]
