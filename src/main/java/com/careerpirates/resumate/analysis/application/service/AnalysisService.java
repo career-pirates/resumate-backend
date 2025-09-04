@@ -115,9 +115,16 @@ public class AnalysisService {
     }
 
     @Transactional(readOnly = true)
-    public AnalysisResponse getAnalysis(Long folderId) {
-        Analysis analysis = analysisRepository.findTop1ByFolderIdOrderByCreatedAtDesc(folderId)
-                .orElseThrow(() -> new BusinessException(AnalysisError.ANALYSIS_NOT_FOUND));
+    public AnalysisResponse getAnalysis(Long folderId, Long analysisId) {
+        Analysis analysis;
+        if (analysisId == null) { // 분석 결과 ID가 없으면 최신 결과 응답
+            analysis = analysisRepository.findTop1ByFolderIdOrderByCreatedAtDesc(folderId)
+                    .orElseThrow(() -> new BusinessException(AnalysisError.ANALYSIS_NOT_FOUND));
+        }
+        else { // 분석 결과 ID 제공시 해당 결과 응답
+            analysis = analysisRepository.findByIdAndFolderId(analysisId, folderId)
+                    .orElseThrow(() -> new BusinessException(AnalysisError.ANALYSIS_NOT_FOUND));
+        }
 
         return AnalysisResponse.of(analysis);
     }

@@ -34,9 +34,10 @@ public class AnalysisController implements AnalysisControllerDocs {
     }
 
     @GetMapping("/{folderId}")
-    public SuccessResponse<AnalysisResponse> getAnalysis(@PathVariable Long folderId) {
+    public SuccessResponse<AnalysisResponse> getAnalysis(@PathVariable Long folderId,
+                                                         @RequestParam(required = false) Long id) {
 
-        AnalysisResponse response = analysisService.getAnalysis(folderId);
+        AnalysisResponse response = analysisService.getAnalysis(folderId, id);
         return SuccessResponse.of(AnalysisSuccess.GET_ANALYSIS, response);
     }
 

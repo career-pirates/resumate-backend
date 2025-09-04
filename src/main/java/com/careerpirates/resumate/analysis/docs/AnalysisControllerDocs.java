@@ -36,7 +36,8 @@ public interface AnalysisControllerDocs {
             @ApiResponse(responseCode = "404", description = "분석 객체를 찾을 수 없습니다.",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
     })
-    SuccessResponse<AnalysisResponse> getAnalysis(@PathVariable Long folderId);
+    SuccessResponse<AnalysisResponse> getAnalysis(@PathVariable Long folderId,
+                                                  @RequestParam(required = false) Long id);
 
     @Operation(method = "GET", summary = "분석 결과 목록 조회", description = "회고 분석 결과 목록을 조회합니다.")
     @ApiResponses(value = {
