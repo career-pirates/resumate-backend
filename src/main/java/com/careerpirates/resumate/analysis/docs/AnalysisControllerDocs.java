@@ -20,7 +20,7 @@ public interface AnalysisControllerDocs {
 
     @Operation(method = "POST", summary = "회고 분석 요청", description = "회고 분석을 요청합니다. 요청은 비동기로 처리됩니다.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "회고 분석 요청에 성공하였습니다."),
+            @ApiResponse(responseCode = "200", description = "회고 분석 요청에 성공하였습니다.<br>(해당 시) 1분 내 분석 요청하였거나, 변경사항이 없는 폴더가 있습니다. result로 해당하는 폴더 ID 목록을 응답합니다."),
             @ApiResponse(responseCode = "400", description = "요청이 올바르지 않습니다.",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "404", description = "폴더를 찾을 수 없습니다.",
