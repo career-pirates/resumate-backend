@@ -50,7 +50,7 @@ spring:
 cors:
   allowed-origin-patterns:
     - http://localhost:5173
-    - https://career-pirates-resumate-git-main-seeunjungs-projects.vercel.app/?_vercel_share=p8p2ALFvjU1rnACcDISeI5c4elCmm8gm
+    - https://career-pirates-resumate-git-main-seeunjungs-projects.vercel.app
   allowed-origin-methods:
     - GET
     - POST
