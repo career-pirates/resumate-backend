@@ -23,6 +23,9 @@ public class Analysis extends BaseEntity {
     @Column(name = "folder_id", nullable = false)
     private Long folderId;
 
+    @Column(name = "folder_name", nullable = false, length = 150)
+    private String folderName;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private AnalysisStatus status;
@@ -62,9 +65,10 @@ public class Analysis extends BaseEntity {
     private LocalDateTime completedAt;
 
     @Builder
-    public Analysis(Long memberId, Long folderId) {
+    public Analysis(Long memberId, Long folderId, String folderName) {
         this.memberId = memberId;
         this.folderId = folderId;
+        this.folderName = folderName;
         this.status = AnalysisStatus.IDLE;
         this.summary = "분석 대기 중";
     }

@@ -1,5 +1,6 @@
 package com.careerpirates.resumate.analysis.application.service;
 
+import com.careerpirates.resumate.analysis.application.dto.response.AnalysisListResponse;
 import com.careerpirates.resumate.analysis.application.dto.response.AnalysisResponse;
 import com.careerpirates.resumate.analysis.application.dto.response.AnalysisResultDto;
 import com.careerpirates.resumate.analysis.application.dto.response.GPTResponse;
@@ -18,6 +19,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,6 +52,7 @@ public class AnalysisService {
         Analysis analysis = Analysis.builder()
                 .memberId(1L) // TODO: 인증인가 구현 이후 실제 memberId 넣기
                 .folderId(folderId)
+                .folderName(combineFolderName(folder))
                 .build();
         analysis = analysisRepository.save(analysis);
 
@@ -115,6 +120,19 @@ public class AnalysisService {
                 .orElseThrow(() -> new BusinessException(AnalysisError.ANALYSIS_NOT_FOUND));
 
         return AnalysisResponse.of(analysis);
+    }
+
+    @Transactional(readOnly = true)
+    public AnalysisListResponse getAnalysisList(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        Slice<Analysis> analysisList = analysisRepository.findAllByOrderByCreatedAtDesc(pageable);
+        return AnalysisListResponse.of(analysisList);
+    }
+
+    private String combineFolderName(Folder folder) {
+        String parentName = folder.getParent() == null ? "" : folder.getParent().getName() + "/";
+        return parentName + folder.getName();
     }
 
     private String getUserInput(List<Review> reviews) {
