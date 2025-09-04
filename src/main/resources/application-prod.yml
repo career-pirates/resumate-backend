@@ -4,6 +4,7 @@ spring:
   config:
     activate:
       on-profile: prod
+    import: "aws-secretsmanager:prod/resumate-db-credentials"
   docker:
     compose:
       file: ./docker-compose.prod.yaml
@@ -33,9 +34,8 @@ oauth:
 
 cors:
   allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS}
+  allowed-origin-headers: ${CORS_ALLOWED_HEADERS}
   allowed-origin-methods: ${CORS_ALLOWED_METHODS}
-  allowed-origin-headers: "*"
-
 jwt:
   secret: ${JWT_SECRET}
   expiration:
