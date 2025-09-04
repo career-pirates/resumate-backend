@@ -1,5 +1,6 @@
 package com.careerpirates.resumate.analysis.docs;
 
+import com.careerpirates.resumate.analysis.application.dto.response.AnalysisListResponse;
 import com.careerpirates.resumate.analysis.application.dto.response.AnalysisResponse;
 import com.careerpirates.resumate.global.message.exception.core.ErrorResponse;
 import com.careerpirates.resumate.global.message.success.SuccessResponse;
@@ -36,4 +37,11 @@ public interface AnalysisControllerDocs {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
     })
     SuccessResponse<AnalysisResponse> getAnalysis(@PathVariable Long folderId);
+
+    @Operation(method = "GET", summary = "분석 결과 목록 조회", description = "회고 분석 결과 목록을 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "분석 결과 목록 조회에 성공하였습니다."),
+    })
+    SuccessResponse<AnalysisListResponse> getAnalysisList(@RequestParam(defaultValue = "0") int page,
+                                                          @RequestParam(defaultValue = "10") int size);
 }
