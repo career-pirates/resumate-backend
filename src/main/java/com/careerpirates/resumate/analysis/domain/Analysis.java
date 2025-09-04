@@ -2,9 +2,7 @@ package com.careerpirates.resumate.analysis.domain;
 
 import com.careerpirates.resumate.global.domain.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -32,6 +30,7 @@ public class Analysis extends BaseEntity {
     @Column(name = "input", columnDefinition = "TEXT")
     private String input;
 
+    @Setter
     @Column(name = "output", columnDefinition = "TEXT")
     private String output;
 
@@ -62,20 +61,22 @@ public class Analysis extends BaseEntity {
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
-    public Analysis(Long memberId, Long folderId, String input) {
+    @Builder
+    public Analysis(Long memberId, Long folderId) {
         this.memberId = memberId;
         this.folderId = folderId;
         this.status = AnalysisStatus.IDLE;
+        this.summary = "분석 대기 중";
     }
 
     public void startAnalysis(String input) {
         this.input = input;
         this.status = AnalysisStatus.PENDING;
+        this.summary = "분석 중";
     }
 
-    public void finishAnalysis(String output, String summary, String strength, String suggestion, String keyword,
+    public void finishAnalysis(String summary, String strength, String suggestion, String keyword,
                                String recKeyword, String apiId, Long inputToken, Long outputToken) {
-        this.output = output;
         this.summary = summary;
         this.strength = strength;
         this.suggestion = suggestion;
@@ -90,6 +91,6 @@ public class Analysis extends BaseEntity {
 
     public void setError(String message) {
         this.status = AnalysisStatus.ERROR;
-        this.output = message;
+        this.summary = message;
     }
 }
