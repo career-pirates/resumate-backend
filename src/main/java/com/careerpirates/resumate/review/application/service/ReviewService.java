@@ -87,13 +87,13 @@ public class ReviewService {
         Review review = reviewRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new BusinessException(ReviewError.REVIEW_NOT_FOUND));
 
-        review.softDelete();
-        reviewRepository.save(review);
-
         // 폴더의 마지막 수정일시 갱신
         Folder folder = review.getFolder();
         folder.markModified();
         folderRepository.save(folder);
+
+        review.softDelete();
+        reviewRepository.save(review);
     }
 
     @Transactional
