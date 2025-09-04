@@ -44,6 +44,11 @@ public class ReviewService {
                 .build();
 
         review = reviewRepository.save(review);
+
+        // 폴더의 마지막 수정일시 갱신
+        folder.markModified();
+        folderRepository.save(folder);
+
         return ReviewResponse.of(review);
     }
 
@@ -69,6 +74,11 @@ public class ReviewService {
             review.markAsCompleted();
 
         review = reviewRepository.save(review);
+
+        // 폴더의 마지막 수정일시 갱신
+        folder.markModified();
+        folderRepository.save(folder);
+
         return ReviewResponse.of(review);
     }
 
@@ -79,6 +89,11 @@ public class ReviewService {
 
         review.softDelete();
         reviewRepository.save(review);
+
+        // 폴더의 마지막 수정일시 갱신
+        Folder folder = review.getFolder();
+        folder.markModified();
+        folderRepository.save(folder);
     }
 
     @Transactional
@@ -98,6 +113,10 @@ public class ReviewService {
 
         review.restore(folder);
         reviewRepository.save(review);
+
+        // 폴더의 마지막 수정일시 갱신
+        folder.markModified();
+        folderRepository.save(folder);
     }
 
     @Transactional(readOnly = true)

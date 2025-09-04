@@ -89,4 +89,8 @@ public class Folder extends BaseEntity {
             child.parent = null;
         }
     }
+
+    public void markModified() {
+        super.updateModifiedAt(LocalDateTime.now());
+    }
 }
