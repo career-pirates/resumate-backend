@@ -22,6 +22,7 @@ public class AnalysisSimpleResponse {
         return AnalysisSimpleResponse.builder()
                 .id(analysis.getId())
                 .folderId(analysis.getFolderId())
+                .folderName(analysis.getFolderName())
                 .status(analysis.getStatus().name())
                 .inputToken(analysis.getInputToken())
                 .outputToken(analysis.getOutputToken())

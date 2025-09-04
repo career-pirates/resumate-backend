@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 public class AnalysisResponse {
     private Long id;
     private Long folderId;
+    private String folderName;
     private String status;
     private String summary;
     private String strength;
@@ -27,6 +28,7 @@ public class AnalysisResponse {
         return AnalysisResponse.builder()
                 .id(analysis.getId())
                 .folderId(analysis.getFolderId())
+                .folderName(analysis.getFolderName())
                 .status(analysis.getStatus().name())
                 .summary(analysis.getSummary())
                 .strength(analysis.getStrength())
