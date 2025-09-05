@@ -63,7 +63,7 @@
 
 김영렬 [@EndlessMilkyway](https://github.com/EndlessMilkyway)
 
-김태훈 [@karlislepark](https://github.com/karlislepark)
+김태훈 [@Altair5869](https://github.com/Altair5869)
 
 이우창 [@changi1122](https://github.com/changi1122)
 
