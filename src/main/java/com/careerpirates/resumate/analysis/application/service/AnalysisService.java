@@ -102,13 +102,14 @@ public class AnalysisService {
                     response.getUsage().getInputTokens(),
                     response.getUsage().getOutputTokens()
             );
+
+            sendCompleteMessage(analysis);
         } catch (Exception e) {
             log.warn(e.getMessage());
             analysis.setError(e.getMessage());
+            sendFailMessage(analysis);
         } finally {
             analysisRepository.save(analysis);
-
-            sendCompleteMessage(analysis);
         }
     }
 
