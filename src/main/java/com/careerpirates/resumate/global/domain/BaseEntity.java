@@ -25,7 +25,7 @@ public abstract class BaseEntity {
 	private LocalDateTime modifiedAt;
 
 	// 상속 받은 클래스에서 메뉴얼로 수정 일시를 업데이트
-	protected void updateModifiedAt() {
-		this.modifiedAt = LocalDateTime.now();
+	protected void updateModifiedAt(LocalDateTime time) {
+		this.modifiedAt = time;
 	}
 }

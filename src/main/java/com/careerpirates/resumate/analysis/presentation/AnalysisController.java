@@ -11,7 +11,9 @@ import com.careerpirates.resumate.global.message.success.SuccessResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/analysis")
@@ -26,9 +28,20 @@ public class AnalysisController implements AnalysisControllerDocs {
             throw new BusinessException(AnalysisError.NO_FOLDER_REQUESTED);
         }
 
+        List<Long> reusableFolderIds = new ArrayList<>();
         for (Long folderId : folders) {
-            analysisService.requestAnalysis(folderId);
+            try {
+                analysisService.requestAnalysis(folderId);
+            } catch (BusinessException e) {
+                if (e.getErrorCode() == AnalysisError.ANALYSIS_REUSABLE)
+                    reusableFolderIds.add(folderId);
+                else
+                    throw e;
+            }
         }
+
+        if (!reusableFolderIds.isEmpty())
+            return SuccessResponse.of(AnalysisSuccess.ANALYSIS_REUSABLE, reusableFolderIds);
 
         return SuccessResponse.of(AnalysisSuccess.REQUEST_ANALYSIS);
     }

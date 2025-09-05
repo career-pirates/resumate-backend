@@ -25,8 +25,10 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -47,6 +49,9 @@ public class AnalysisService {
         List<Review> reviews = reviewRepository.findByFolder(folder);
         if (reviews.isEmpty()) // 분석할 폴더에 회고가 없을 경우
             throw new BusinessException(AnalysisError.FOLDER_EMPTY);
+
+        // 1분 내 분석을 요청하였거나 폴더 내 회고 변경이 없었다면 런타임 예외 반환
+        findReusableAnalysis(folder);
 
         // 분석 객체 생성 및 저장
         Analysis analysis = Analysis.builder()
@@ -135,6 +140,20 @@ public class AnalysisService {
 
         Slice<Analysis> analysisList = analysisRepository.findAllByOrderByCreatedAtDesc(pageable);
         return AnalysisListResponse.of(analysisList);
+    }
+
+    private void findReusableAnalysis(Folder folder) {
+        Optional<Analysis> reusable = analysisRepository.findTop1ByFolderIdOrderByCreatedAtDesc(folder.getId())
+                .filter(analysis -> isReusable(analysis, folder));
+
+        if (reusable.isPresent())
+            throw new BusinessException(AnalysisError.ANALYSIS_REUSABLE);
+    }
+
+    private boolean isReusable(Analysis analysis, Folder folder) {
+        LocalDateTime now = LocalDateTime.now();
+        return analysis.getCreatedAt().isAfter(now.minusMinutes(1))
+                || analysis.getCreatedAt().isAfter(folder.getModifiedAt());
     }
 
     private String combineFolderName(Folder folder) {
