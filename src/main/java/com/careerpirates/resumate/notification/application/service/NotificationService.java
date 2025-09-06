@@ -1,26 +1,43 @@
 package com.careerpirates.resumate.notification.application.service;
 
 import com.careerpirates.resumate.global.message.exception.core.BusinessException;
+import com.careerpirates.resumate.notification.application.dto.request.Message;
 import com.careerpirates.resumate.notification.application.dto.response.NotificationListResponse;
 import com.careerpirates.resumate.notification.application.dto.response.NotificationResponse;
 import com.careerpirates.resumate.notification.domain.Notification;
 import com.careerpirates.resumate.notification.infrastructure.NotificationRepository;
 import com.careerpirates.resumate.notification.message.exception.NotificationError;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 
 @Slf4j
 @Service
+@Validated
 @RequiredArgsConstructor
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void sendNotificationTo(@Valid Message message) {
+
+        Notification notification = Notification.builder()
+                .title(message.getTitle())
+                .message(message.getMessage())
+                .url(message.getUrl())
+                .build();
+
+        notificationRepository.save(notification);
+    }
 
     @Transactional
     public void markAsRead(Long id) {
