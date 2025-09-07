@@ -1,4 +1,4 @@
-package com.careerpirates.resumate.review.application.factory;
+package com.careerpirates.resumate.review.factory;
 
 import com.careerpirates.resumate.review.application.dto.request.ReviewRequest;
 

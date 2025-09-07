@@ -3,6 +3,7 @@ package com.careerpirates.resumate.folder.domain;
 import com.careerpirates.resumate.folder.message.exception.FolderError;
 import com.careerpirates.resumate.global.domain.BaseEntity;
 import com.careerpirates.resumate.global.message.exception.core.BusinessException;
+import com.careerpirates.resumate.member.domain.entity.Member;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -24,6 +25,10 @@ public class Folder extends BaseEntity {
     @Column(name = "id")
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
+
     @Column(name = "name", nullable = false, length = 50)
     private String name;
 
@@ -39,10 +44,14 @@ public class Folder extends BaseEntity {
     private List<Folder> children = new ArrayList<>();
 
     @Builder
-    public Folder(Folder parent, String name, Integer order) {
+    public Folder(Folder parent, Member member, String name, Integer order) {
         this.parent = parent;
+        this.member = member;
         this.name = name;
         this.order = order;
+        if (parent != null && parent.getChildren() != null && !parent.getChildren().contains(this)) {
+            parent.getChildren().add(this);
+        }
     }
 
     public void updateName(String name) {

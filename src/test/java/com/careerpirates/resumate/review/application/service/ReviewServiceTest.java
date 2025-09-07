@@ -3,6 +3,8 @@ package com.careerpirates.resumate.review.application.service;
 import com.careerpirates.resumate.folder.domain.Folder;
 import com.careerpirates.resumate.folder.infrastructure.FolderRepository;
 import com.careerpirates.resumate.global.message.exception.core.BusinessException;
+import com.careerpirates.resumate.member.domain.entity.Member;
+import com.careerpirates.resumate.member.infrastructure.MemberRepository;
 import com.careerpirates.resumate.review.application.dto.request.ReviewRequest;
 import com.careerpirates.resumate.review.application.dto.request.ReviewSortType;
 import com.careerpirates.resumate.review.application.dto.response.ReviewListResponse;
@@ -18,17 +20,20 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Optional;
 
 import static com.careerpirates.resumate.folder.factory.FolderTestFactory.createDefaultFolders;
-import static com.careerpirates.resumate.review.application.factory.ReviewTestFactory.createReviewRequest;
+import static com.careerpirates.resumate.member.factory.MemberFactory.createMember;
+import static com.careerpirates.resumate.review.factory.ReviewTestFactory.createReviewRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
 
+@Transactional
 @SpringBootTest
 //@ActiveProfiles("test")
 class ReviewServiceTest {
@@ -39,19 +44,16 @@ class ReviewServiceTest {
     private ReviewRepository reviewRepository;
     @Autowired
     private FolderRepository folderRepository;
+    @Autowired
+    private MemberRepository memberRepository;
 
     @BeforeEach
     void setUp() {
-        folderRepository.saveAll(createDefaultFolders());
+        Member member = memberRepository.save(createMember("test"));
+        folderRepository.saveAll(createDefaultFolders(member));
 
         Folder folderA = folderRepository.findByName("A").orElseThrow();
         reviewService.createReview(createReviewRequest(folderA.getId(), "회고A", true));
-    }
-
-    @AfterEach
-    void tearDown() {
-        reviewRepository.deleteAllInBatch();
-        folderRepository.deleteAllInBatch();
     }
 
     @Test
