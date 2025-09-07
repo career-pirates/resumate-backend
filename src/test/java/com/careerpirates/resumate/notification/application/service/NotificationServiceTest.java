@@ -3,14 +3,12 @@ package com.careerpirates.resumate.notification.application.service;
 import com.careerpirates.resumate.notification.application.dto.response.NotificationListResponse;
 import com.careerpirates.resumate.notification.domain.Notification;
 import com.careerpirates.resumate.notification.infrastructure.NotificationRepository;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -22,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @Transactional
 @SpringBootTest
-//@ActiveProfiles("test")
 class NotificationServiceTest {
 
     @Autowired

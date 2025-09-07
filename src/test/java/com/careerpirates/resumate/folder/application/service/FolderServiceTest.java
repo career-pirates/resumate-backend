@@ -35,7 +35,6 @@ import static org.assertj.core.api.Assertions.*;
 
 @Transactional
 @SpringBootTest
-//@ActiveProfiles("test")
 class FolderServiceTest {
 
     @Autowired
@@ -132,19 +131,19 @@ class FolderServiceTest {
     void deleteFolder_success() {
         // given
         Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
-        Folder folderA = folderRepository.findByName("A").get();
+        Folder folderA = folderRepository.findByNameAndMember("A", member).get();
 
         // when
         folderService.deleteFolder(folderA.getId(), member.getId());
 
         // then
-        Optional<Folder> resultA = folderRepository.findByName("A");
+        Optional<Folder> resultA = folderRepository.findByNameAndMember("A", member);
         assertThat(resultA.isPresent()).isFalse();
-        Optional<Folder> resultAB = folderRepository.findByName("AB");
+        Optional<Folder> resultAB = folderRepository.findByNameAndMember("AB", member);
         assertThat(resultAB.isPresent()).isFalse();
-        Optional<Folder> resultB = folderRepository.findByName("B");
+        Optional<Folder> resultB = folderRepository.findByNameAndMember("B", member);
         assertThat(resultB.isPresent()).isTrue();
-        Optional<Folder> resultBA = folderRepository.findByName("BA");
+        Optional<Folder> resultBA = folderRepository.findByNameAndMember("BA", member);
         assertThat(resultBA.isPresent()).isTrue();
     }
 
@@ -153,7 +152,7 @@ class FolderServiceTest {
     void deleteSubFolder_success() {
         // given
         Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
-        Folder folderAA = folderRepository.findByName("AA").get();
+        Folder folderAA = folderRepository.findByNameAndMember("AA", member).get();
         ReviewResponse review = reviewService.createReview(
                 createReviewRequest(folderAA.getId(), "회고AA", true, LocalDate.of(2025, 9, 15)),
                 member.getId()
@@ -163,11 +162,11 @@ class FolderServiceTest {
         folderService.deleteFolder(folderAA.getId(), member.getId());
 
         // then
-        Optional<Folder> resultA = folderRepository.findByName("A");
+        Optional<Folder> resultA = folderRepository.findByNameAndMember("A", member);
         assertThat(resultA.isPresent()).isTrue();
-        Optional<Folder> resultAA = folderRepository.findByName("AA");
+        Optional<Folder> resultAA = folderRepository.findByNameAndMember("AA", member);
         assertThat(resultAA.isPresent()).isFalse();
-        Optional<Folder> resultAB = folderRepository.findByName("AB");
+        Optional<Folder> resultAB = folderRepository.findByNameAndMember("AB", member);
         assertThat(resultAB.isPresent()).isTrue();
         Review foundReview = reviewRepository.findById(review.getId()).orElseThrow();
         assertThat(foundReview).extracting("title", "isDeleted")
@@ -198,8 +197,8 @@ class FolderServiceTest {
     void setFolderOrder_success() {
         // given
         Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
-        Folder folderA = folderRepository.findByName("A").get();
-        Folder folderB = folderRepository.findByName("B").get();
+        Folder folderA = folderRepository.findByNameAndMember("A", member).get();
+        Folder folderB = folderRepository.findByNameAndMember("B", member).get();
 
         List<FolderOrderRequest> request = List.of(
                 FolderOrderRequest.builder().id(folderA.getId()).order(2).build(),
@@ -237,10 +236,10 @@ class FolderServiceTest {
         // given
         Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
 
-        Folder folderA = folderRepository.findByName("A").get();
-        Folder folderAA = folderRepository.findByName("AA").get();
-        Folder folderAB = folderRepository.findByName("AB").get();
-        Folder folderBA = folderRepository.findByName("BA").get();
+        Folder folderA = folderRepository.findByNameAndMember("A", member).get();
+        Folder folderAA = folderRepository.findByNameAndMember("AA", member).get();
+        Folder folderAB = folderRepository.findByNameAndMember("AB", member).get();
+        Folder folderBA = folderRepository.findByNameAndMember("BA", member).get();
 
         List<FolderOrderRequest> request = List.of(
                 FolderOrderRequest.builder().id(folderAA.getId()).order(2).build(),
@@ -267,8 +266,8 @@ class FolderServiceTest {
     void setSubFolderTree_maxNested() {
         // given
         Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
-        Folder folderA = folderRepository.findByName("A").get();
-        Folder folderB = folderRepository.findByName("B").get();
+        Folder folderA = folderRepository.findByNameAndMember("A", member).get();
+        Folder folderB = folderRepository.findByNameAndMember("B", member).get();
 
         List<FolderOrderRequest> request = List.of(
                 FolderOrderRequest.builder().id(folderB.getId()).order(1).build()
@@ -286,7 +285,7 @@ class FolderServiceTest {
     void setSubFolderTree_selfNested() {
         // given
         Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
-        Folder folderA = folderRepository.findByName("A").get();
+        Folder folderA = folderRepository.findByNameAndMember("A", member).get();
 
         List<FolderOrderRequest> request = List.of(
                 FolderOrderRequest.builder().id(folderA.getId()).order(1).build()
@@ -304,8 +303,8 @@ class FolderServiceTest {
     void setSubFolderTree_nestedCycle() {
         // given
         Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
-        Folder folderA = folderRepository.findByName("A").get();
-        Folder folderAB = folderRepository.findByName("AB").get();
+        Folder folderA = folderRepository.findByNameAndMember("A", member).get();
+        Folder folderAB = folderRepository.findByNameAndMember("AB", member).get();
 
         List<FolderOrderRequest> request = List.of(
                 FolderOrderRequest.builder().id(folderA.getId()).order(1).build()

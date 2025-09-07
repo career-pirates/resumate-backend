@@ -4,13 +4,11 @@ import com.careerpirates.resumate.folder.domain.Folder;
 import com.careerpirates.resumate.member.domain.entity.Member;
 import com.careerpirates.resumate.member.domain.enums.OAuthProvider;
 import com.careerpirates.resumate.member.infrastructure.MemberRepository;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -21,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Transactional
 @SpringBootTest
-//@ActiveProfiles("test")
 class FolderRepositoryTest {
 
     @Autowired

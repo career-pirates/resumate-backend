@@ -13,7 +13,6 @@ import com.careerpirates.resumate.review.application.dto.response.ReviewResponse
 import com.careerpirates.resumate.review.domain.Review;
 import com.careerpirates.resumate.review.infrastructure.ReviewRepository;
 import com.careerpirates.resumate.review.message.exception.ReviewError;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -21,7 +20,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -36,7 +34,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Transactional
 @SpringBootTest
-//@ActiveProfiles("test")
 class ReviewServiceTest {
 
     @Autowired
@@ -53,7 +50,7 @@ class ReviewServiceTest {
         Member member = memberRepository.save(createMember("test"));
         folderRepository.saveAll(createDefaultFolders(member));
 
-        Folder folderA = folderRepository.findByName("A").orElseThrow();
+        Folder folderA = folderRepository.findByNameAndMember("A", member).orElseThrow();
         reviewService.createReview(createReviewRequest(folderA.getId(), "회고A", true), member.getId());
     }
 
@@ -62,7 +59,7 @@ class ReviewServiceTest {
     void createReview_success() {
         // given
         Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
-        Folder folderA = folderRepository.findByName("A").orElseThrow();
+        Folder folderA = folderRepository.findByNameAndMember("A", member).orElseThrow();
         ReviewRequest request = createReviewRequest(folderA.getId(), "회고A-2", true);
 
         // when
@@ -79,8 +76,8 @@ class ReviewServiceTest {
     void updateReview_success() {
         // given
         Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
-        Folder folderA = folderRepository.findByName("A").orElseThrow();
-        Folder folderAB = folderRepository.findByName("AB").orElseThrow();
+        Folder folderA = folderRepository.findByNameAndMember("A", member).orElseThrow();
+        Folder folderAB = folderRepository.findByNameAndMember("AB", member).orElseThrow();
         ReviewResponse created = reviewService.createReview(createReviewRequest(folderA.getId(), "임시회고", false), member.getId());
 
         ReviewRequest request = createReviewRequest(folderAB.getId(), "완료회고", true);
@@ -133,7 +130,7 @@ class ReviewServiceTest {
     void restoreReview_success() {
         // given
         Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
-        Folder folderAB = folderRepository.findByName("AB").orElseThrow();
+        Folder folderAB = folderRepository.findByNameAndMember("AB", member).orElseThrow();
 
         Long reviewId = reviewRepository.findAll().stream()
                 .filter(r -> r.getTitle().equals("회고A")).findFirst().get().getId();
@@ -168,8 +165,8 @@ class ReviewServiceTest {
     void getReviews_isCompletedFalse() {
         // given
         Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
-        Folder folderAB = folderRepository.findByName("AB").orElseThrow();
-        Folder folderBA = folderRepository.findByName("BA").orElseThrow();
+        Folder folderAB = folderRepository.findByNameAndMember("AB", member).orElseThrow();
+        Folder folderBA = folderRepository.findByNameAndMember("BA", member).orElseThrow();
 
         reviewService.createReview(createReviewRequest(folderAB.getId(), "회고AB-1", true, LocalDate.of(2025, 9, 15)), member.getId());
         reviewService.createReview(createReviewRequest(folderAB.getId(), "회고AB-2", false, LocalDate.of(2025, 9, 14)), member.getId());
@@ -189,8 +186,8 @@ class ReviewServiceTest {
     void getReviews_pagination() {
         // given
         Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
-        Folder folderAB = folderRepository.findByName("AB").orElseThrow();
-        Folder folderBA = folderRepository.findByName("BA").orElseThrow();
+        Folder folderAB = folderRepository.findByNameAndMember("AB", member).orElseThrow();
+        Folder folderBA = folderRepository.findByNameAndMember("BA", member).orElseThrow();
 
         reviewService.createReview(createReviewRequest(folderAB.getId(), "회고AB-1", true, LocalDate.of(2025, 9, 15)), member.getId());
         reviewService.createReview(createReviewRequest(folderAB.getId(), "회고AB-2", true, LocalDate.of(2025, 9, 14)), member.getId());
@@ -217,8 +214,8 @@ class ReviewServiceTest {
     void getReviews_sortType(int page, int size, String sortTypeStr, boolean isCompleted, String expectedTitles) {
         // given
         Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
-        Folder folderAB = folderRepository.findByName("AB").orElseThrow();
-        Folder folderBA = folderRepository.findByName("BA").orElseThrow();
+        Folder folderAB = folderRepository.findByNameAndMember("AB", member).orElseThrow();
+        Folder folderBA = folderRepository.findByNameAndMember("BA", member).orElseThrow();
 
         reviewService.createReview(createReviewRequest(folderAB.getId(), "회고AB-1", true, LocalDate.of(2025, 9, 15)), member.getId());
         reviewService.createReview(createReviewRequest(folderAB.getId(), "회고AB-2", true, LocalDate.of(2025, 9, 14)), member.getId());
@@ -241,8 +238,8 @@ class ReviewServiceTest {
     void getReviewsByFolder_isCompletedFalse() {
         // given
         Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
-        Folder folderAB = folderRepository.findByName("AB").orElseThrow();
-        Folder folderBA = folderRepository.findByName("BA").orElseThrow();
+        Folder folderAB = folderRepository.findByNameAndMember("AB", member).orElseThrow();
+        Folder folderBA = folderRepository.findByNameAndMember("BA", member).orElseThrow();
 
         reviewService.createReview(createReviewRequest(folderAB.getId(), "회고AB-1", true, LocalDate.of(2025, 9, 15)), member.getId());
         reviewService.createReview(createReviewRequest(folderAB.getId(), "회고AB-2", false, LocalDate.of(2025, 9, 14)), member.getId());
@@ -264,8 +261,8 @@ class ReviewServiceTest {
     void getReviewsByFolder_pagination() {
         // given
         Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
-        Folder folderAB = folderRepository.findByName("AB").orElseThrow();
-        Folder folderBA = folderRepository.findByName("BA").orElseThrow();
+        Folder folderAB = folderRepository.findByNameAndMember("AB", member).orElseThrow();
+        Folder folderBA = folderRepository.findByNameAndMember("BA", member).orElseThrow();
 
         reviewService.createReview(createReviewRequest(folderAB.getId(), "회고AB-1", true, LocalDate.of(2025, 9, 15)), member.getId());
         reviewService.createReview(createReviewRequest(folderAB.getId(), "회고AB-2", true, LocalDate.of(2025, 9, 14)), member.getId());
@@ -293,8 +290,8 @@ class ReviewServiceTest {
     void getReviewsByFolder_sortType(int page, int size, String sortTypeStr, boolean isCompleted, String expectedTitles) {
         // given
         Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
-        Folder folderAB = folderRepository.findByName("AB").orElseThrow();
-        Folder folderBA = folderRepository.findByName("BA").orElseThrow();
+        Folder folderAB = folderRepository.findByNameAndMember("AB", member).orElseThrow();
+        Folder folderBA = folderRepository.findByNameAndMember("BA", member).orElseThrow();
 
         reviewService.createReview(createReviewRequest(folderAB.getId(), "회고AB-1", true, LocalDate.of(2025, 9, 15)), member.getId());
         reviewService.createReview(createReviewRequest(folderAB.getId(), "회고AB-2", true, LocalDate.of(2025, 9, 14)), member.getId());
