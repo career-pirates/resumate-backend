@@ -8,7 +8,9 @@ on:
       - 'src/**'
       - 'build.gradle'
       - 'settings.gradle'
+      - 'gradle.properties'
       - 'gradle/**'
+      - 'gradlew*'
       - '.github/workflows/pr-tests.yml'
   workflow_dispatch:
 
@@ -37,6 +39,8 @@ jobs:
 
     env:
       SPRING_PROFILES_ACTIVE: test
+      OPENAI_API_KEY: test
+      JWT_SECRET: test-secret-32bytes-minimum-padding-123456
 
     steps:
       - name: Checkout
@@ -50,7 +54,6 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-          cache: gradle
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3

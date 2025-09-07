@@ -22,7 +22,7 @@ spring:
     activate:
       on-profile: test
 jwt:
-  secret: b0a4ff363885bcc010ab2d331ab5f3d957f7e8aa8233a175d039acd1c2affd45
+  secret: ${JWT_SECRET:test-secret-32bytes-minimum-padding-123456}
   expiration:
     access: 3600
     refresh: 2592000
