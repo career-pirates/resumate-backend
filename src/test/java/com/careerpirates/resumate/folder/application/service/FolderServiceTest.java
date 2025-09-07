@@ -51,7 +51,7 @@ class FolderServiceTest {
     @BeforeEach
     void setUp() {
         Member member = memberRepository.save(createMember("test"));
-        List<Folder> folders = folderRepository.saveAll(createDefaultFolders(member));
+        folderRepository.saveAll(createDefaultFolders(member));
     }
 
     @Test

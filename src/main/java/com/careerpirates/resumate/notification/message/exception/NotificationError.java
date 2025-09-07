@@ -9,7 +9,8 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum NotificationError implements ErrorCode {
 
-    NOTIFICATION_NOT_FOUND("알림을 찾을 수 없습니다.", HttpStatus.NOT_FOUND, "NT_001");
+    NOTIFICATION_NOT_FOUND("알림을 찾을 수 없습니다.", HttpStatus.NOT_FOUND, "NT_001"),
+    MEMBER_INVALID("회원 정보를 찾을 수 없습니다.", HttpStatus.BAD_REQUEST, "NT_002");
 
     private final String message;
     private final HttpStatus status;
