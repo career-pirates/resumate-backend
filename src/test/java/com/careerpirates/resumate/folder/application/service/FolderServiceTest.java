@@ -155,7 +155,8 @@ class FolderServiceTest {
         Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
         Folder folderAA = folderRepository.findByName("AA").get();
         ReviewResponse review = reviewService.createReview(
-                createReviewRequest(folderAA.getId(), "회고AA", true, LocalDate.of(2025, 9, 15))
+                createReviewRequest(folderAA.getId(), "회고AA", true, LocalDate.of(2025, 9, 15)),
+                member.getId()
         );
 
         // when
