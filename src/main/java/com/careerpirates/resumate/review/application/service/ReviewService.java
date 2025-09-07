@@ -34,7 +34,7 @@ public class ReviewService {
     public ReviewResponse createReview(ReviewRequest request, Long memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
-        Folder folder = folderRepository.findById(request.folderId())
+        Folder folder = folderRepository.findByIdAndMember(request.folderId(), member)
                 .orElseThrow(() -> new BusinessException(FolderError.FOLDER_NOT_FOUND));
 
         Review review = Review.builder()
