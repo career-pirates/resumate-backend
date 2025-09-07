@@ -1,0 +1,41 @@
+spring:
+  datasource:
+    # H2 또는 Testcontainers 중 하나 선택
+    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  config:
+    import:
+      - optional:file:./.env[.properties]
+    activate:
+      on-profile: test
+jwt:
+  secret: b0a4ff363885bcc010ab2d331ab5f3d957f7e8aa8233a175d039acd1c2affd45
+  expiration:
+    access: 3600
+    refresh: 2592000
+
+oauth:
+  login-redirect-url: http://localhost:5173
+
+cookie:
+  domain: localhost
+
+openai:
+  api-key: ${OPENAI_API_KEY}
+  base-url: https://api.openai.com/v1
+  prompt:
+    id: pmpt_68b69bf0c14081959f3bab045f17ccc803b70565310d26f7
+    version: 2
