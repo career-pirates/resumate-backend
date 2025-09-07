@@ -65,7 +65,7 @@ public class Review extends BaseEntity {
                   String learnings, String aspirations, boolean isCompleted, LocalDate reviewDate) {
         if (member == null)
             throw new BusinessException(ReviewError.MEMBER_INVALID);
-        if (folder != null && folder.getMember() != null && folder.getMember() != member)
+        if (folder != null && folder.getMember() != null && !folder.getMember().getId().equals(member.getId()))
             throw new BusinessException(ReviewError.FOLDER_OWNER_INVALID);
 
         this.folder = folder;

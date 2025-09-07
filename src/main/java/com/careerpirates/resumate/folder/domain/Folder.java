@@ -48,7 +48,7 @@ public class Folder extends BaseEntity {
     public Folder(@Nullable Folder parent, Member member, String name, Integer order) {
         if (member == null)
             throw new BusinessException(FolderError.MEMBER_INVALID);
-        if (parent != null && parent.getMember() != null && parent.getMember() != member) {
+        if (parent != null && parent.getMember() != null && !parent.getMember().getId().equals(member.getId())) {
             throw new BusinessException(FolderError.FOLDER_OWNER_INVALID);
         }
 
