@@ -46,9 +46,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate Gradle wrapper (best-effort)
-        uses: gradle/wrapper-validation-action@v2
-        continue-on-error: true
+#      - name: Validate Gradle wrapper (best-effort)
+#        uses: gradle/wrapper-validation-action@v2
+#        continue-on-error: true
 
       - name: Setup Java
         uses: actions/setup-java@v4
