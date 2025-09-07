@@ -17,8 +17,6 @@ spring:
       hibernate:
         format_sql: true
   config:
-    import:
-      - optional:file:./.env[.properties]
     activate:
       on-profile: test
 jwt:
@@ -34,8 +32,8 @@ cookie:
   domain: localhost
 
 openai:
-  api-key: ${OPENAI_API_KEY}
-  base-url: https://api.openai.com/v1
+  api-key: test
+  base-url: http://127.0.0.1:9999
   prompt:
-    id: pmpt_68b69bf0c14081959f3bab045f17ccc803b70565310d26f7
-    version: 2
+    id: test
+    version: 1
