@@ -11,6 +11,7 @@ import com.careerpirates.resumate.folder.message.exception.FolderError;
 import com.careerpirates.resumate.global.message.exception.core.BusinessException;
 import com.careerpirates.resumate.review.domain.Review;
 import com.careerpirates.resumate.review.infrastructure.ReviewRepository;
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -66,11 +67,17 @@ public class FolderService {
     }
 
     @Transactional(readOnly = true)
-    public List<FolderTreeResponse> getFolders() {
-        List<Folder> parentFolders = folderRepository.findParentFolders();
+    public List<FolderTreeResponse> getFolders(@Nullable Long parentId, boolean children) {
+        Folder parent = resolveParentFolder(parentId);
 
-        return parentFolders.stream()
-                .map(FolderTreeResponse::of)
+        List<Folder> folders;
+        if (parent == null) // 상위 폴더 조회시
+            folders = folderRepository.findParentFolders();
+        else // 특정 폴더의 하위 폴더 조회시
+            folders = folderRepository.findChildFolders(parent);
+
+        return folders.stream()
+                .map((fd) -> FolderTreeResponse.of(fd, children))
                 .toList();
     }
 
@@ -95,7 +102,7 @@ public class FolderService {
         folderRepository.saveAll(updatedFolders);
 
         return updatedFolders.stream()
-                .map(FolderTreeResponse::of)
+                .map(fd -> FolderTreeResponse.of(fd, true))
                 .toList();
     }
 
@@ -137,7 +144,7 @@ public class FolderService {
 
         List<Folder> parentFolders = folderRepository.findParentFolders();
         return parentFolders.stream()
-                .map(FolderTreeResponse::of)
+                .map(fd -> FolderTreeResponse.of(fd, true))
                 .toList();
     }
 

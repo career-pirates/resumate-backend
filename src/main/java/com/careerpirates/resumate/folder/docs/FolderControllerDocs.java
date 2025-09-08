@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -57,7 +58,8 @@ public interface FolderControllerDocs {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "폴더 목록 조회에 성공하였습니다."),
     })
-    SuccessResponse<List<FolderTreeResponse>> getFolders();
+    SuccessResponse<List<FolderTreeResponse>> getFolders(@RequestParam(required = false) Long parentId,
+                                                         @RequestParam(defaultValue = "true") Boolean children);
 
     @Operation(method = "PATCH", summary = "상위 폴더 순서 설정", description = "상위 폴더들 사이의 순서를 설정합니다.")
     @ApiResponses(value = {
