@@ -1,6 +1,9 @@
 package com.careerpirates.resumate.notification.application.service;
 
 import com.careerpirates.resumate.global.message.exception.core.BusinessException;
+import com.careerpirates.resumate.member.domain.entity.Member;
+import com.careerpirates.resumate.member.infrastructure.MemberRepository;
+import com.careerpirates.resumate.member.message.exception.MemberErrorCode;
 import com.careerpirates.resumate.notification.application.dto.request.Message;
 import com.careerpirates.resumate.notification.application.dto.response.NotificationListResponse;
 import com.careerpirates.resumate.notification.application.dto.response.NotificationResponse;
@@ -26,11 +29,15 @@ import java.util.List;
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
+    private final MemberRepository memberRepository;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void sendNotificationTo(@Valid Message message) {
+    public void sendNotificationTo(@Valid Message message, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
 
         Notification notification = Notification.builder()
+                .member(member)
                 .title(message.getTitle())
                 .message(message.getMessage())
                 .url(message.getUrl())
@@ -40,8 +47,11 @@ public class NotificationService {
     }
 
     @Transactional
-    public void markAsRead(Long id) {
-        Notification notification = notificationRepository.findById(id)
+    public void markAsRead(Long id, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        Notification notification = notificationRepository.findByIdAndMember(id, member)
                 .orElseThrow(() -> new BusinessException(NotificationError.NOTIFICATION_NOT_FOUND));
 
         notification.markAsRead();
@@ -49,22 +59,29 @@ public class NotificationService {
     }
 
     @Transactional
-    public void deleteNotification(Long id) {
-        Notification notification = notificationRepository.findById(id)
+    public void deleteNotification(Long id, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+
+        Notification notification = notificationRepository.findByIdAndMember(id, member)
                 .orElseThrow(() -> new BusinessException(NotificationError.NOTIFICATION_NOT_FOUND));
 
         notificationRepository.delete(notification);
     }
 
     @Transactional(readOnly = true)
-    public NotificationListResponse getNotifications(Long cursorId, int size) {
+    public NotificationListResponse getNotifications(Long cursorId, int size, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+
         Pageable pageable = PageRequest.of(0, size + 1);
         List<Notification> notifications;
 
         if (cursorId == null)
-            notifications = notificationRepository.findAllByOrderByIdDesc(pageable);
+            notifications = notificationRepository.findByMemberOrderByIdDesc(member, pageable);
         else
-            notifications = notificationRepository.findByIdLessThanOrderByIdDesc(cursorId, pageable);
+            notifications = notificationRepository.findByMemberAndIdLessThanOrderByIdDesc(member, cursorId, pageable);
 
         // 실제 반환 리스트는 size 개만 반환
         List<Notification> pageList = notifications.size() > size ? notifications.subList(0, size) : notifications;

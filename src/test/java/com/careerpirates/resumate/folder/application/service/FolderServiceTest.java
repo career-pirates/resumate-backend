@@ -9,16 +9,19 @@ import com.careerpirates.resumate.folder.domain.Folder;
 import com.careerpirates.resumate.folder.infrastructure.FolderRepository;
 import com.careerpirates.resumate.folder.message.exception.FolderError;
 import com.careerpirates.resumate.global.message.exception.core.BusinessException;
+import com.careerpirates.resumate.member.domain.entity.Member;
+import com.careerpirates.resumate.member.domain.enums.OAuthProvider;
+import com.careerpirates.resumate.member.infrastructure.MemberRepository;
 import com.careerpirates.resumate.review.application.dto.response.ReviewResponse;
 import com.careerpirates.resumate.review.application.service.ReviewService;
 import com.careerpirates.resumate.review.domain.Review;
 import com.careerpirates.resumate.review.infrastructure.ReviewRepository;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -26,11 +29,12 @@ import java.util.Optional;
 
 import static com.careerpirates.resumate.folder.factory.FolderTestFactory.createDefaultFolders;
 import static com.careerpirates.resumate.folder.factory.FolderTestFactory.createFolderRequest;
-import static com.careerpirates.resumate.review.application.factory.ReviewTestFactory.createReviewRequest;
+import static com.careerpirates.resumate.member.factory.MemberFactory.createMember;
+import static com.careerpirates.resumate.review.factory.ReviewTestFactory.createReviewRequest;
 import static org.assertj.core.api.Assertions.*;
 
+@Transactional
 @SpringBootTest
-//@ActiveProfiles("test")
 class FolderServiceTest {
 
     @Autowired
@@ -41,29 +45,27 @@ class FolderServiceTest {
     private FolderRepository folderRepository;
     @Autowired
     private ReviewRepository reviewRepository;
+    @Autowired
+    private MemberRepository memberRepository;
 
     @BeforeEach
     void setUp() {
-        folderRepository.saveAll(createDefaultFolders());
-    }
-
-    @AfterEach
-    void tearDown() {
-        reviewRepository.deleteAllInBatch();
-        folderRepository.deleteAllInBatch();
+        Member member = memberRepository.save(createMember("test"));
+        folderRepository.saveAll(createDefaultFolders(member));
     }
 
     @Test
     @DisplayName("상위 폴더를 생성합니다.")
     void createFolder_success() {
         // given
+        Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
         FolderRequest request = createFolderRequest(null, "NEW", 2);
 
         // when
-        FolderResponse response = folderService.createFolder(request);
+        FolderResponse response = folderService.createFolder(request, member.getId());
 
         // then
-        Folder found = folderRepository.findById(response.getId()).get();
+        Folder found = folderRepository.findByIdAndMember(response.getId(), member).get();
         assertThat(found).extracting("name", "order")
                 .containsExactly("NEW", 2);
     }
@@ -72,17 +74,19 @@ class FolderServiceTest {
     @DisplayName("하위 폴더를 생성합니다.")
     void createSubFolder_success() {
         // given
-        Folder parent = folderRepository.findParentFolders().get(0);
+        Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
+
+        Folder parent = folderRepository.findParentFolders(member).get(0);
         FolderRequest request = createFolderRequest(parent.getId(), "NEW", 2);
 
         // when
-        FolderResponse response = folderService.createFolder(request);
+        FolderResponse response = folderService.createFolder(request, member.getId());
 
         // then
         assertThat(response).extracting("parentId", "parentName")
                 .containsExactly(parent.getId(), parent.getName());
 
-        Folder found = folderRepository.findById(response.getId()).get();
+        Folder found = folderRepository.findByIdAndMember(response.getId(), member).get();
         assertThat(found).extracting("name", "order")
                 .containsExactly("NEW", 2);
     }
@@ -91,10 +95,11 @@ class FolderServiceTest {
     @DisplayName("존재하지 않는 상위 폴더 선택시 예외가 발생합니다.")
     void createSubFolder_parentNotFound() {
         // given
+        Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
         FolderRequest request = createFolderRequest(9999L, "NEW", 2);
 
         // when then
-        assertThatThrownBy(() -> folderService.createFolder(request))
+        assertThatThrownBy(() -> folderService.createFolder(request, member.getId()))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(FolderError.PARENT_FOLDER_NOT_FOUND);
@@ -104,12 +109,14 @@ class FolderServiceTest {
     @DisplayName("폴더 이름을 수정합니다.")
     void updateFolderName() {
         // given
-        Folder folder = folderRepository.findParentFolders().get(0);
+        Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
+        Folder folder = folderRepository.findParentFolders(member).get(0);
 
         // when
         FolderResponse response = folderService.updateFolderName(
                 folder.getId(),
-                FolderNameRequest.builder().name("새이름").build()
+                FolderNameRequest.builder().name("새이름").build(),
+                member.getId()
         );
 
         // then
@@ -123,19 +130,20 @@ class FolderServiceTest {
     @DisplayName("상위 폴더를 삭제합니다.")
     void deleteFolder_success() {
         // given
-        Folder folderA = folderRepository.findByName("A").get();
+        Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
+        Folder folderA = folderRepository.findByNameAndMember("A", member).get();
 
         // when
-        folderService.deleteFolder(folderA.getId());
+        folderService.deleteFolder(folderA.getId(), member.getId());
 
         // then
-        Optional<Folder> resultA = folderRepository.findByName("A");
+        Optional<Folder> resultA = folderRepository.findByNameAndMember("A", member);
         assertThat(resultA.isPresent()).isFalse();
-        Optional<Folder> resultAB = folderRepository.findByName("AB");
+        Optional<Folder> resultAB = folderRepository.findByNameAndMember("AB", member);
         assertThat(resultAB.isPresent()).isFalse();
-        Optional<Folder> resultB = folderRepository.findByName("B");
+        Optional<Folder> resultB = folderRepository.findByNameAndMember("B", member);
         assertThat(resultB.isPresent()).isTrue();
-        Optional<Folder> resultBA = folderRepository.findByName("BA");
+        Optional<Folder> resultBA = folderRepository.findByNameAndMember("BA", member);
         assertThat(resultBA.isPresent()).isTrue();
     }
 
@@ -143,20 +151,22 @@ class FolderServiceTest {
     @DisplayName("하위 폴더를 삭제합니다.")
     void deleteSubFolder_success() {
         // given
-        Folder folderAA = folderRepository.findByName("AA").get();
+        Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
+        Folder folderAA = folderRepository.findByNameAndMember("AA", member).get();
         ReviewResponse review = reviewService.createReview(
-                createReviewRequest(folderAA.getId(), "회고AA", true, LocalDate.of(2025, 9, 15))
+                createReviewRequest(folderAA.getId(), "회고AA", true, LocalDate.of(2025, 9, 15)),
+                member.getId()
         );
 
         // when
-        folderService.deleteFolder(folderAA.getId());
+        folderService.deleteFolder(folderAA.getId(), member.getId());
 
         // then
-        Optional<Folder> resultA = folderRepository.findByName("A");
+        Optional<Folder> resultA = folderRepository.findByNameAndMember("A", member);
         assertThat(resultA.isPresent()).isTrue();
-        Optional<Folder> resultAA = folderRepository.findByName("AA");
+        Optional<Folder> resultAA = folderRepository.findByNameAndMember("AA", member);
         assertThat(resultAA.isPresent()).isFalse();
-        Optional<Folder> resultAB = folderRepository.findByName("AB");
+        Optional<Folder> resultAB = folderRepository.findByNameAndMember("AB", member);
         assertThat(resultAB.isPresent()).isTrue();
         Review foundReview = reviewRepository.findById(review.getId()).orElseThrow();
         assertThat(foundReview).extracting("title", "isDeleted")
@@ -167,7 +177,8 @@ class FolderServiceTest {
     @DisplayName("상위 폴더와 하위 폴더 목록을 조회합니다.")
     void getFolders_success() {
         // when
-        List<FolderTreeResponse> result = folderService.getFolders(null, true);
+        Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
+        List<FolderTreeResponse> result = folderService.getFolders(member.getId(), null, true);
 
         // then
         assertThat(result).hasSize(2);
@@ -185,8 +196,9 @@ class FolderServiceTest {
     @DisplayName("상위 폴더 사이의 표시 순서를 설정합니다.")
     void setFolderOrder_success() {
         // given
-        Folder folderA = folderRepository.findByName("A").get();
-        Folder folderB = folderRepository.findByName("B").get();
+        Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
+        Folder folderA = folderRepository.findByNameAndMember("A", member).get();
+        Folder folderB = folderRepository.findByNameAndMember("B", member).get();
 
         List<FolderOrderRequest> request = List.of(
                 FolderOrderRequest.builder().id(folderA.getId()).order(2).build(),
@@ -194,10 +206,10 @@ class FolderServiceTest {
         );
 
         // when
-        folderService.setFolderOrder(request);
+        folderService.setFolderOrder(request, member.getId());
 
         // then
-        assertThat(folderRepository.findParentFolders())
+        assertThat(folderRepository.findParentFolders(member))
                 .extracting("name")
                 .containsExactly("B", "A");
     }
@@ -206,12 +218,13 @@ class FolderServiceTest {
     @DisplayName("상위 폴더 순서 설정시 존재하지 않으면 예외 발생합니다.")
     void setFolderOrder_notFound() {
         // given
+        Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
         List<FolderOrderRequest> request = List.of(
                 FolderOrderRequest.builder().id(9999L).order(1).build()
         );
 
         // when then
-        assertThatThrownBy(() -> folderService.setFolderOrder(request))
+        assertThatThrownBy(() -> folderService.setFolderOrder(request, member.getId()))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(FolderError.PARENT_FOLDER_NOT_FOUND);
@@ -221,10 +234,12 @@ class FolderServiceTest {
     @DisplayName("폴더의 상위 폴더를 변경합니다.")
     void setSubFolderTree_success() {
         // given
-        Folder folderA = folderRepository.findByName("A").get();
-        Folder folderAA = folderRepository.findByName("AA").get();
-        Folder folderAB = folderRepository.findByName("AB").get();
-        Folder folderBA = folderRepository.findByName("BA").get();
+        Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
+
+        Folder folderA = folderRepository.findByNameAndMember("A", member).get();
+        Folder folderAA = folderRepository.findByNameAndMember("AA", member).get();
+        Folder folderAB = folderRepository.findByNameAndMember("AB", member).get();
+        Folder folderBA = folderRepository.findByNameAndMember("BA", member).get();
 
         List<FolderOrderRequest> request = List.of(
                 FolderOrderRequest.builder().id(folderAA.getId()).order(2).build(),
@@ -233,10 +248,10 @@ class FolderServiceTest {
         );
 
         // when
-        folderService.setSubFolderTree(folderA.getId(), request);
+        folderService.setSubFolderTree(folderA.getId(), request, member.getId());
 
         // then
-        List<FolderTreeResponse> foundFolders = folderService.getFolders(null, true);;
+        List<FolderTreeResponse> foundFolders = folderService.getFolders(member.getId(), null, true);
         assertThat(childrenOf(foundFolders, "A"))
                 .extracting("name")
                 .containsExactly("BA", "AA", "AB");
@@ -250,15 +265,16 @@ class FolderServiceTest {
     @DisplayName("폴더를 3 중첩 시도시 예외가 발생합니다.")
     void setSubFolderTree_maxNested() {
         // given
-        Folder folderA = folderRepository.findByName("A").get();
-        Folder folderB = folderRepository.findByName("B").get();
+        Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
+        Folder folderA = folderRepository.findByNameAndMember("A", member).get();
+        Folder folderB = folderRepository.findByNameAndMember("B", member).get();
 
         List<FolderOrderRequest> request = List.of(
                 FolderOrderRequest.builder().id(folderB.getId()).order(1).build()
         );
 
         // when then
-        assertThatThrownBy(() -> folderService.setSubFolderTree(folderA.getId(), request))
+        assertThatThrownBy(() -> folderService.setSubFolderTree(folderA.getId(), request, member.getId()))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(FolderError.MAX_NESTING_DEPTH_EXCEEDED);
@@ -268,14 +284,15 @@ class FolderServiceTest {
     @DisplayName("자기 자신을 상위 폴더로 선택시 예외가 발생합니다.")
     void setSubFolderTree_selfNested() {
         // given
-        Folder folderA = folderRepository.findByName("A").get();
+        Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
+        Folder folderA = folderRepository.findByNameAndMember("A", member).get();
 
         List<FolderOrderRequest> request = List.of(
                 FolderOrderRequest.builder().id(folderA.getId()).order(1).build()
         );
 
         // when then
-        assertThatThrownBy(() -> folderService.setSubFolderTree(folderA.getId(), request))
+        assertThatThrownBy(() -> folderService.setSubFolderTree(folderA.getId(), request, member.getId()))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(FolderError.PARENT_FOLDER_INVALID);
@@ -285,15 +302,16 @@ class FolderServiceTest {
     @DisplayName("자신의 하위폴더를 상위 폴더로 선택시 예외가 발생합니다.")
     void setSubFolderTree_nestedCycle() {
         // given
-        Folder folderA = folderRepository.findByName("A").get();
-        Folder folderAB = folderRepository.findByName("AB").get();
+        Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
+        Folder folderA = folderRepository.findByNameAndMember("A", member).get();
+        Folder folderAB = folderRepository.findByNameAndMember("AB", member).get();
 
         List<FolderOrderRequest> request = List.of(
                 FolderOrderRequest.builder().id(folderA.getId()).order(1).build()
         );
 
         // when then
-        assertThatThrownBy(() -> folderService.setSubFolderTree(folderAB.getId(), request))
+        assertThatThrownBy(() -> folderService.setSubFolderTree(folderAB.getId(), request, member.getId()))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
                 .isEqualTo(FolderError.PARENT_FOLDER_INVALID);

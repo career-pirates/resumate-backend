@@ -9,6 +9,9 @@ import com.careerpirates.resumate.folder.domain.Folder;
 import com.careerpirates.resumate.folder.infrastructure.FolderRepository;
 import com.careerpirates.resumate.folder.message.exception.FolderError;
 import com.careerpirates.resumate.global.message.exception.core.BusinessException;
+import com.careerpirates.resumate.member.domain.entity.Member;
+import com.careerpirates.resumate.member.infrastructure.MemberRepository;
+import com.careerpirates.resumate.member.message.exception.MemberErrorCode;
 import com.careerpirates.resumate.review.domain.Review;
 import com.careerpirates.resumate.review.infrastructure.ReviewRepository;
 import jakarta.annotation.Nullable;
@@ -31,13 +34,17 @@ public class FolderService {
 
     private final FolderRepository folderRepository;
     private final ReviewRepository reviewRepository;
+    private final MemberRepository memberRepository;
 
     @Transactional
-    public FolderResponse createFolder(FolderRequest request) {
-        Folder parent = resolveParentFolder(request.parentId());
+    public FolderResponse createFolder(FolderRequest request, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+        Folder parent = resolveParentFolder(request.parentId(), member);
 
         Folder folder = Folder.builder()
                 .name(request.name())
+                .member(member)
                 .order(request.order())
                 .parent(parent)
                 .build();
@@ -48,8 +55,10 @@ public class FolderService {
     }
 
     @Transactional
-    public FolderResponse updateFolderName(Long id, FolderNameRequest request) {
-        Folder folder = folderRepository.findById(id)
+    public FolderResponse updateFolderName(Long id, FolderNameRequest request, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+        Folder folder = folderRepository.findByIdAndMember(id, member)
                 .orElseThrow(() -> new BusinessException(FolderError.FOLDER_NOT_FOUND));
 
         folder.updateName(request.name());
@@ -59,22 +68,26 @@ public class FolderService {
     }
 
     @Transactional
-    public void deleteFolder(Long id) {
-        Folder folder = folderRepository.findById(id)
+    public void deleteFolder(Long id, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+        Folder folder = folderRepository.findByIdAndMember(id, member)
                 .orElseThrow(() -> new BusinessException(FolderError.FOLDER_NOT_FOUND));
 
         clearFolderRecursively(folder);
     }
 
     @Transactional(readOnly = true)
-    public List<FolderTreeResponse> getFolders(@Nullable Long parentId, boolean children) {
-        Folder parent = resolveParentFolder(parentId);
+    public List<FolderTreeResponse> getFolders(Long memberId, @Nullable Long parentId, boolean children) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+        Folder parent = resolveParentFolder(parentId, member);
 
         List<Folder> folders;
         if (parent == null) // 상위 폴더 조회시
-            folders = folderRepository.findParentFolders();
+            folders = folderRepository.findParentFolders(member);
         else // 특정 폴더의 하위 폴더 조회시
-            folders = folderRepository.findChildFolders(parent);
+            folders = folderRepository.findChildFolders(parent, member);
 
         return folders.stream()
                 .map((fd) -> FolderTreeResponse.of(fd, children))
@@ -82,8 +95,11 @@ public class FolderService {
     }
 
     @Transactional
-    public List<FolderTreeResponse> setFolderOrder(List<FolderOrderRequest> request) {
-        List<Folder> folders = folderRepository.findParentFolders();
+    public List<FolderTreeResponse> setFolderOrder(List<FolderOrderRequest> request, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        List<Folder> folders = folderRepository.findParentFolders(member);
         Map<Long, Folder> folderMap = folders.stream().collect(Collectors.toMap(Folder::getId, Function.identity()));
 
         // 표시 순서 설정
@@ -107,14 +123,17 @@ public class FolderService {
     }
 
     @Transactional
-    public List<FolderTreeResponse> setSubFolderTree(Long parentId, List<FolderOrderRequest> request) {
+    public List<FolderTreeResponse> setSubFolderTree(Long parentId, List<FolderOrderRequest> request, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+
         // 상위 폴더 가져오기
-        Folder parentFolder = folderRepository.findById(parentId)
+        Folder parentFolder = folderRepository.findByIdAndMember(parentId, member)
                 .orElseThrow(() -> new BusinessException(FolderError.FOLDER_NOT_FOUND));
 
         // 수정할 하위 폴더 목록 가져오기
         List<Long> idList = request.stream().map(FolderOrderRequest::id).toList();
-        List<Folder> folders = folderRepository.findByIdIn(idList);
+        List<Folder> folders = folderRepository.findByIdInAndMember(idList, member);
         Map<Long, Folder> folderMap = folders.stream()
                 .collect(Collectors.toMap(Folder::getId, Function.identity(), (a, b) -> b));
 
@@ -142,17 +161,17 @@ public class FolderService {
                 .toList();
         folderRepository.saveAll(updatedFolders);
 
-        List<Folder> parentFolders = folderRepository.findParentFolders();
+        List<Folder> parentFolders = folderRepository.findParentFolders(member);
         return parentFolders.stream()
                 .map(fd -> FolderTreeResponse.of(fd, true))
                 .toList();
     }
 
-    private Folder resolveParentFolder(Long parentId) {
+    private Folder resolveParentFolder(Long parentId, Member member) {
         if (parentId == null)
             return null;
 
-        return folderRepository.findById(parentId)
+        return folderRepository.findByIdAndMember(parentId, member)
                 .orElseThrow(() -> new BusinessException(FolderError.PARENT_FOLDER_NOT_FOUND));
     }
 
@@ -180,6 +199,9 @@ public class FolderService {
         reviewRepository.saveAll(reviews);
 
         // 데이터베이스에서 폴더 삭제
+        if (folder.getParent() != null) {
+            folder.getParent().removeChild(folder);
+        }
         folderRepository.delete(folder);
     }
 }
