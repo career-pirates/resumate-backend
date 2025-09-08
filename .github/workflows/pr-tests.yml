@@ -22,6 +22,7 @@ jobs:
   test:
     name: Run Unit Tests (Java 17)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     services:
       redis:
         image: redis:7-alpine
@@ -47,9 +48,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-#      - name: Validate Gradle wrapper (best-effort)
-#        uses: gradle/wrapper-validation-action@v2
-#        continue-on-error: true
+      - name: Validate Gradle wrapper (best-effort)
+        uses: gradle/wrapper-validation-action@v2
+        continue-on-error: true
 
       - name: Setup Java
         uses: actions/setup-java@v4
