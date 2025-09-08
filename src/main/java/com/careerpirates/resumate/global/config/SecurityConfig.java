@@ -59,7 +59,7 @@ public class SecurityConfig {
 						.successHandler(successHandler))
 				.authorizeHttpRequests(auth -> auth
 					.requestMatchers(AUTH_BYPASS_ENDPOINTS)
-					.permitAll().anyRequest().permitAll())
+					.permitAll().anyRequest().authenticated())
 				.addFilterBefore(jwtAuthenticationFilter,
 						UsernamePasswordAuthenticationFilter.class)
 				.build();
