@@ -32,9 +32,12 @@ public class NotificationService {
     private final MemberRepository memberRepository;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void sendNotificationTo(@Valid Message message) {
+    public void sendNotificationTo(@Valid Message message, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
 
         Notification notification = Notification.builder()
+                .member(member)
                 .title(message.getTitle())
                 .message(message.getMessage())
                 .url(message.getUrl())

@@ -166,8 +166,9 @@ public class AnalysisService {
 
     private boolean isReusable(Analysis analysis, Folder folder) {
         LocalDateTime now = LocalDateTime.now();
-        return analysis.getCreatedAt().isAfter(now.minusMinutes(1))
-                || analysis.getCreatedAt().isAfter(folder.getModifiedAt());
+        return analysis.getCreatedAt().isAfter(now.minusMinutes(5)) &&
+                (analysis.getCreatedAt().isAfter(now.minusMinutes(1)) ||
+                        analysis.getCreatedAt().isAfter(folder.getModifiedAt()));
     }
 
     private String combineFolderName(Folder folder) {
@@ -195,16 +196,18 @@ public class AnalysisService {
     private void sendCompleteMessage(Analysis analysis) {
         notificationService.sendNotificationTo(Message.builder()
                 .title("회고 분석 완료")
-                .message(String.format("'%s'의 자소서 재료 뽑기가 완료되었습니다!", analysis.getFolderName()))
-                .build()
+                .message(String.format("'%s'의 자소서 재료 분석이 완료되었습니다!", analysis.getFolderName()))
+                .build(),
+                analysis.getMemberId()
         );
     }
 
     private void sendFailMessage(Analysis analysis) {
         notificationService.sendNotificationTo(Message.builder()
                 .title("회고 분석 실패")
-                .message(String.format("'%s'의 자소서 재료 뽑기 중 오류가 발생하였습니다.", analysis.getFolderName()))
-                .build()
+                .message(String.format("'%s'의 자소서 재료 분석 중 오류가 발생하였습니다.", analysis.getFolderName()))
+                .build(),
+                analysis.getMemberId()
         );
     }
 }
