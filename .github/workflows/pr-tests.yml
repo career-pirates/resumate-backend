@@ -41,6 +41,7 @@ jobs:
       SPRING_PROFILES_ACTIVE: test
       OPENAI_API_KEY: test
       JWT_SECRET: test-secret-32bytes-minimum-padding-123456
+      AWS_EC2_METADATA_DISABLED: true
 
     steps:
       - name: Checkout

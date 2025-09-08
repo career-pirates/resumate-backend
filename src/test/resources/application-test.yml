@@ -37,3 +37,5 @@ openai:
   prompt:
     id: test
     version: 1
+aws:
+  enabled: false
