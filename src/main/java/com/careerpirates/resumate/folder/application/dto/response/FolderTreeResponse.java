@@ -20,7 +20,7 @@ public class FolderTreeResponse {
     private LocalDateTime modifiedAt;
     private List<FolderTreeResponse> children;
 
-    public static FolderTreeResponse of(Folder folder) {
+    public static FolderTreeResponse of(Folder folder, boolean children) {
         Folder parent = folder.getParent();
 
         return FolderTreeResponse.builder()
@@ -30,10 +30,12 @@ public class FolderTreeResponse {
                 .modifiedAt(folder.getModifiedAt())
                 .parentId(parent == null ? null : parent.getId())
                 .parentName(parent == null ? null : parent.getName())
-                .children(folder.getChildren().stream()
-                        .sorted(Comparator.comparingInt(Folder::getOrder))
-                        .map(FolderTreeResponse::of)
-                        .toList()
+                .children(children
+                        ? folder.getChildren().stream()
+                            .sorted(Comparator.comparingInt(Folder::getOrder))
+                            .map(fd -> FolderTreeResponse.of(fd, children))
+                            .toList()
+                        : null
                 )
                 .build();
     }

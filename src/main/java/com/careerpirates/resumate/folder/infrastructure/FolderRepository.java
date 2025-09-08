@@ -20,6 +20,15 @@ public interface FolderRepository extends JpaRepository<Folder, Long> {
     """)
     List<Folder> findParentFolders(Member member);
 
+    @Query("""
+        SELECT fd FROM Folder fd
+        WHERE fd.member = :member
+          AND fd.parent = :parent
+        ORDER BY fd.order""")
+    List<Folder> findChildFolders(Folder parent, Member member);
+
+    List<Folder> findByIdIn(List<Long> ids);
+
     List<Folder> findByIdInAndMember(List<Long> ids, Member member);
 
     Optional<Folder> findByNameAndMember(String name, Member member);

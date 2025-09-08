@@ -178,7 +178,7 @@ class FolderServiceTest {
     void getFolders_success() {
         // when
         Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
-        List<FolderTreeResponse> result = folderService.getFolders(member.getId());
+        List<FolderTreeResponse> result = folderService.getFolders(member.getId(), null, true);
 
         // then
         assertThat(result).hasSize(2);
@@ -251,7 +251,7 @@ class FolderServiceTest {
         folderService.setSubFolderTree(folderA.getId(), request, member.getId());
 
         // then
-        List<FolderTreeResponse> foundFolders = folderService.getFolders(member.getId());
+        List<FolderTreeResponse> foundFolders = folderService.getFolders(member.getId(), null, true);
         assertThat(childrenOf(foundFolders, "A"))
                 .extracting("name")
                 .containsExactly("BA", "AA", "AB");

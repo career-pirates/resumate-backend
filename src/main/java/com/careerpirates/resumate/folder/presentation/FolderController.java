@@ -49,8 +49,10 @@ public class FolderController implements FolderControllerDocs {
     }
 
     @GetMapping
-    public SuccessResponse<List<FolderTreeResponse>> getFolders(@AuthenticationPrincipal CustomMemberDetails member) {
-        List<FolderTreeResponse> response = folderService.getFolders(member.getMemberId());
+    public SuccessResponse<List<FolderTreeResponse>> getFolders(@RequestParam(required = false) Long parentId,
+                                                                @RequestParam(defaultValue = "true") Boolean children,
+                                                                @AuthenticationPrincipal CustomMemberDetails member) {
+        List<FolderTreeResponse> response = folderService.getFolders(member.getMemberId(), parentId, children);
         return SuccessResponse.of(FolderSuccess.GET_FOLDERS, response);
     }
 

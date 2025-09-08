@@ -14,6 +14,7 @@ import com.careerpirates.resumate.member.infrastructure.MemberRepository;
 import com.careerpirates.resumate.member.message.exception.MemberErrorCode;
 import com.careerpirates.resumate.review.domain.Review;
 import com.careerpirates.resumate.review.infrastructure.ReviewRepository;
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -77,13 +78,19 @@ public class FolderService {
     }
 
     @Transactional(readOnly = true)
-    public List<FolderTreeResponse> getFolders(Long memberId) {
+    public List<FolderTreeResponse> getFolders(Long memberId, @Nullable Long parentId, boolean children) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
-        List<Folder> parentFolders = folderRepository.findParentFolders(member);
+        Folder parent = resolveParentFolder(parentId, member);
 
-        return parentFolders.stream()
-                .map(FolderTreeResponse::of)
+        List<Folder> folders;
+        if (parent == null) // 상위 폴더 조회시
+            folders = folderRepository.findParentFolders(member);
+        else // 특정 폴더의 하위 폴더 조회시
+            folders = folderRepository.findChildFolders(parent, member);
+
+        return folders.stream()
+                .map((fd) -> FolderTreeResponse.of(fd, children))
                 .toList();
     }
 
@@ -111,7 +118,7 @@ public class FolderService {
         folderRepository.saveAll(updatedFolders);
 
         return updatedFolders.stream()
-                .map(FolderTreeResponse::of)
+                .map(fd -> FolderTreeResponse.of(fd, true))
                 .toList();
     }
 
@@ -156,7 +163,7 @@ public class FolderService {
 
         List<Folder> parentFolders = folderRepository.findParentFolders(member);
         return parentFolders.stream()
-                .map(FolderTreeResponse::of)
+                .map(fd -> FolderTreeResponse.of(fd, true))
                 .toList();
     }
 
