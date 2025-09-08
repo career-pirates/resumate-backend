@@ -167,7 +167,7 @@ class FolderServiceTest {
     @DisplayName("상위 폴더와 하위 폴더 목록을 조회합니다.")
     void getFolders_success() {
         // when
-        List<FolderTreeResponse> result = folderService.getFolders();
+        List<FolderTreeResponse> result = folderService.getFolders(null, true);
 
         // then
         assertThat(result).hasSize(2);
@@ -236,7 +236,7 @@ class FolderServiceTest {
         folderService.setSubFolderTree(folderA.getId(), request);
 
         // then
-        List<FolderTreeResponse> foundFolders = folderService.getFolders();
+        List<FolderTreeResponse> foundFolders = folderService.getFolders(null, true);;
         assertThat(childrenOf(foundFolders, "A"))
                 .extracting("name")
                 .containsExactly("BA", "AA", "AB");
