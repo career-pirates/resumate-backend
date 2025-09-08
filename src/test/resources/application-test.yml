@@ -30,7 +30,7 @@ cookie:
 
 openai:
   api-key: test
-  base-url: http://127.0.0.1:9999
+  base-url: http://127.0.0.1:9999/v1
   prompt:
     id: test
     version: 1
