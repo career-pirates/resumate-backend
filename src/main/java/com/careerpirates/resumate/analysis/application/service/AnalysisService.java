@@ -13,6 +13,8 @@ import com.careerpirates.resumate.folder.domain.Folder;
 import com.careerpirates.resumate.folder.infrastructure.FolderRepository;
 import com.careerpirates.resumate.folder.message.exception.FolderError;
 import com.careerpirates.resumate.global.message.exception.core.BusinessException;
+import com.careerpirates.resumate.notification.application.dto.request.Message;
+import com.careerpirates.resumate.notification.application.service.NotificationService;
 import com.careerpirates.resumate.review.domain.Review;
 import com.careerpirates.resumate.review.infrastructure.ReviewRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,8 +27,10 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -35,6 +39,7 @@ public class AnalysisService {
 
     private final ObjectMapper objectMapper;
     private final OpenAIService openAIService;
+    private final NotificationService notificationService;
     private final FolderRepository folderRepository;
     private final ReviewRepository reviewRepository;
     private final AnalysisRepository analysisRepository;
@@ -47,6 +52,9 @@ public class AnalysisService {
         List<Review> reviews = reviewRepository.findByFolder(folder);
         if (reviews.isEmpty()) // 분석할 폴더에 회고가 없을 경우
             throw new BusinessException(AnalysisError.FOLDER_EMPTY);
+
+        // 1분 내 분석을 요청하였거나 폴더 내 회고 변경이 없었다면 런타임 예외 반환
+        findReusableAnalysis(folder);
 
         // 분석 객체 생성 및 저장
         Analysis analysis = Analysis.builder()
@@ -94,9 +102,12 @@ public class AnalysisService {
                     response.getUsage().getInputTokens(),
                     response.getUsage().getOutputTokens()
             );
+
+            sendCompleteMessage(analysis);
         } catch (Exception e) {
             log.warn(e.getMessage());
             analysis.setError(e.getMessage());
+            sendFailMessage(analysis);
         } finally {
             analysisRepository.save(analysis);
         }
@@ -112,6 +123,8 @@ public class AnalysisService {
 
         analysis.setError(event.getE().getMessage());
         analysisRepository.save(analysis);
+
+        sendFailMessage(analysis);
     }
 
     @Transactional(readOnly = true)
@@ -137,6 +150,20 @@ public class AnalysisService {
         return AnalysisListResponse.of(analysisList);
     }
 
+    private void findReusableAnalysis(Folder folder) {
+        Optional<Analysis> reusable = analysisRepository.findTop1ByFolderIdOrderByCreatedAtDesc(folder.getId())
+                .filter(analysis -> isReusable(analysis, folder));
+
+        if (reusable.isPresent())
+            throw new BusinessException(AnalysisError.ANALYSIS_REUSABLE);
+    }
+
+    private boolean isReusable(Analysis analysis, Folder folder) {
+        LocalDateTime now = LocalDateTime.now();
+        return analysis.getCreatedAt().isAfter(now.minusMinutes(1))
+                || analysis.getCreatedAt().isAfter(folder.getModifiedAt());
+    }
+
     private String combineFolderName(Folder folder) {
         String parentName = folder.getParent() == null ? "" : folder.getParent().getName() + "/";
         return parentName + folder.getName();
@@ -157,5 +184,21 @@ public class AnalysisService {
         }
 
         return inputBuilder.toString();
+    }
+
+    private void sendCompleteMessage(Analysis analysis) {
+        notificationService.sendNotificationTo(Message.builder()
+                .title("회고 분석 완료")
+                .message(String.format("'%s'의 자소서 재료 뽑기가 완료되었습니다!", analysis.getFolderName()))
+                .build()
+        );
+    }
+
+    private void sendFailMessage(Analysis analysis) {
+        notificationService.sendNotificationTo(Message.builder()
+                .title("회고 분석 실패")
+                .message(String.format("'%s'의 자소서 재료 뽑기 중 오류가 발생하였습니다.", analysis.getFolderName()))
+                .build()
+        );
     }
 }
