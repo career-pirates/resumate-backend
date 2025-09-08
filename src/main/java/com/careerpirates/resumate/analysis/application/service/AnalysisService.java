@@ -13,6 +13,9 @@ import com.careerpirates.resumate.folder.domain.Folder;
 import com.careerpirates.resumate.folder.infrastructure.FolderRepository;
 import com.careerpirates.resumate.folder.message.exception.FolderError;
 import com.careerpirates.resumate.global.message.exception.core.BusinessException;
+import com.careerpirates.resumate.member.domain.entity.Member;
+import com.careerpirates.resumate.member.infrastructure.MemberRepository;
+import com.careerpirates.resumate.member.message.exception.MemberErrorCode;
 import com.careerpirates.resumate.notification.application.dto.request.Message;
 import com.careerpirates.resumate.notification.application.service.NotificationService;
 import com.careerpirates.resumate.review.domain.Review;
@@ -43,10 +46,14 @@ public class AnalysisService {
     private final FolderRepository folderRepository;
     private final ReviewRepository reviewRepository;
     private final AnalysisRepository analysisRepository;
+    private final MemberRepository memberRepository;
 
     @Transactional
-    public void requestAnalysis(Long folderId) {
-        Folder folder = folderRepository.findById(folderId)
+    public void requestAnalysis(Long folderId, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        Folder folder = folderRepository.findByIdAndMember(folderId, member)
                 .orElseThrow(() -> new BusinessException(FolderError.FOLDER_NOT_FOUND));
 
         List<Review> reviews = reviewRepository.findByFolder(folder);
@@ -54,11 +61,11 @@ public class AnalysisService {
             throw new BusinessException(AnalysisError.FOLDER_EMPTY);
 
         // 1분 내 분석을 요청하였거나 폴더 내 회고 변경이 없었다면 런타임 예외 반환
-        findReusableAnalysis(folder);
+        findReusableAnalysis(folder, memberId);
 
         // 분석 객체 생성 및 저장
         Analysis analysis = Analysis.builder()
-                .memberId(1L) // TODO: 인증인가 구현 이후 실제 memberId 넣기
+                .memberId(memberId)
                 .folderId(folderId)
                 .folderName(combineFolderName(folder))
                 .build();
@@ -87,7 +94,6 @@ public class AnalysisService {
                 .orElseThrow(() -> new BusinessException(AnalysisError.ANALYSIS_NOT_FOUND));
 
         try {
-            log.info(response.getOutput().toString());
             String output = response.getOutput().get(1).getContent().get(0).getText();
             analysis.setOutput(output);
 
@@ -128,14 +134,14 @@ public class AnalysisService {
     }
 
     @Transactional(readOnly = true)
-    public AnalysisResponse getAnalysis(Long folderId, Long analysisId) {
+    public AnalysisResponse getAnalysis(Long folderId, Long analysisId, Long memberId) {
         Analysis analysis;
         if (analysisId == null) { // 분석 결과 ID가 없으면 최신 결과 응답
-            analysis = analysisRepository.findTop1ByFolderIdOrderByCreatedAtDesc(folderId)
+            analysis = analysisRepository.findTop1ByMemberIdAndFolderIdOrderByCreatedAtDesc(memberId, folderId)
                     .orElseThrow(() -> new BusinessException(AnalysisError.ANALYSIS_NOT_FOUND));
         }
         else { // 분석 결과 ID 제공시 해당 결과 응답
-            analysis = analysisRepository.findByIdAndFolderId(analysisId, folderId)
+            analysis = analysisRepository.findByIdAndMemberIdAndFolderId(analysisId, memberId, folderId)
                     .orElseThrow(() -> new BusinessException(AnalysisError.ANALYSIS_NOT_FOUND));
         }
 
@@ -143,15 +149,15 @@ public class AnalysisService {
     }
 
     @Transactional(readOnly = true)
-    public AnalysisListResponse getAnalysisList(int page, int size) {
+    public AnalysisListResponse getAnalysisList(int page, int size, Long memberId) {
         Pageable pageable = PageRequest.of(page, size);
 
-        Slice<Analysis> analysisList = analysisRepository.findAllByOrderByCreatedAtDesc(pageable);
+        Slice<Analysis> analysisList = analysisRepository.findByMemberIdOrderByCreatedAtDesc(memberId, pageable);
         return AnalysisListResponse.of(analysisList);
     }
 
-    private void findReusableAnalysis(Folder folder) {
-        Optional<Analysis> reusable = analysisRepository.findTop1ByFolderIdOrderByCreatedAtDesc(folder.getId())
+    private void findReusableAnalysis(Folder folder, Long memberId) {
+        Optional<Analysis> reusable = analysisRepository.findTop1ByMemberIdAndFolderIdOrderByCreatedAtDesc(memberId, folder.getId())
                 .filter(analysis -> isReusable(analysis, folder));
 
         if (reusable.isPresent())
