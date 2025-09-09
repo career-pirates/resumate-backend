@@ -55,7 +55,7 @@ public class Member extends BaseEntity {
 	@Column(name = "role", nullable = false)
 	private Role role;
 
-	@Column(name = "continuous_days")
+	@Column(name = "continuous_days", nullable = false)
 	private Long continuousDays;
 
 	@Column(name = "last_review_date")
