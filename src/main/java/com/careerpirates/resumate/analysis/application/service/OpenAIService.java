@@ -2,8 +2,11 @@ package com.careerpirates.resumate.analysis.application.service;
 
 import com.careerpirates.resumate.analysis.config.OpenAIProperties;
 import com.careerpirates.resumate.analysis.application.dto.response.GPTResponse;
+import com.careerpirates.resumate.analysis.config.OpenAIRateLimiter;
 import com.careerpirates.resumate.analysis.event.AnalysisCompletedEvent;
 import com.careerpirates.resumate.analysis.event.AnalysisErrorEvent;
+import com.careerpirates.resumate.analysis.message.exception.AnalysisError;
+import com.careerpirates.resumate.global.message.exception.core.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -23,10 +26,19 @@ public class OpenAIService {
 
     private final WebClient webClient;
     private final OpenAIProperties properties;
+    private final OpenAIRateLimiter rateLimiter;
     private final ApplicationEventPublisher eventPublisher;
 
     @Async
     public CompletableFuture<Void> sendRequest(Long analysisId, String userInput) {
+        if (!rateLimiter.tryConsume()) {
+            log.info("OpenAI API rate limit 초과: { analysisId={} }", analysisId);
+            eventPublisher.publishEvent(
+                    new AnalysisErrorEvent(analysisId, new BusinessException(AnalysisError.RATE_LIMIT_EXCEEDED))
+            );
+            return CompletableFuture.completedFuture(null);
+        }
+
         // 요청 Body를 Java Map 구조로 정의
         Map<String, Object> requestBody = Map.of(
                 "prompt", Map.of(
