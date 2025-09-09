@@ -74,4 +74,46 @@ public class Member extends BaseEntity {
 	public void updateNickName(String nickname) {
 		this.nickname = nickname;
 	}
+
+	public void updateLastReviewDate() {
+		LocalDate today = LocalDate.now();
+
+		// 첫 번째 리뷰이거나 이미 오늘 업데이트된 경우
+		if (lastReviewDate == null) {
+			this.lastReviewDate = today;
+			this.continuousDays = 1L;
+			return;
+		}
+
+		if (lastReviewDate.isEqual(today)) {
+			return;
+		}
+
+		if (isConsecutiveDay(lastReviewDate, today)) {
+			this.continuousDays++;
+		} else {
+			// 연속이 끊어진 경우 1부터 다시 시작
+			this.continuousDays = 1L;
+		}
+
+		this.lastReviewDate = today;
+	}
+
+	/**
+	 * 두 날짜가 연속된 날짜인지 확인
+	 * @param previousDate 이전 날짜
+	 * @param currentDate 현재 날짜
+	 * @return 연속된 날짜인지 여부
+	 */
+	private boolean isConsecutiveDay(LocalDate previousDate, LocalDate currentDate) {
+		return Period.between(previousDate, currentDate).getDays() == 1;
+	}
+
+	/**
+	 * 연속 일수 초기화 (필요시 외부에서 호출)
+	 */
+	public void resetContinuousDays() {
+		this.continuousDays = 0L;
+		this.lastReviewDate = null;
+	}
 }
