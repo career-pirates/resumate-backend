@@ -28,9 +28,9 @@ class OpenAIServiceTest {
 
     @Autowired
     private OpenAIProperties properties;
-    @Autowired
-    private OpenAIRateLimiter rateLimiter;
 
+    @MockitoBean
+    private OpenAIRateLimiter rateLimiter;
     @MockitoBean
     private AnalysisService analysisService;
     @MockitoBean
