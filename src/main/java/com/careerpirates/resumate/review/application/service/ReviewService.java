@@ -39,6 +39,8 @@ public class ReviewService {
         Folder folder = folderRepository.findByIdAndMember(request.folderId(), member)
                 .orElseThrow(() -> new BusinessException(FolderError.FOLDER_NOT_FOUND));
 
+        member.updateLastReviewDate();
+
         Review review = Review.builder()
                 .folder(folder)
                 .member(member)
