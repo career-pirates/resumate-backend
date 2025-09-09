@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -46,4 +47,18 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     @Modifying
     @Transactional
     long deleteByIsDeletedTrueAndDeletedAtBefore(LocalDateTime threshold);
+
+    @Query("""
+        SELECT COUNT(r)
+        FROM Review r
+        WHERE r.member = :member
+          AND r.createdAt >= :startOfMonth
+          AND r.createdAt < :startOfNextMonth
+          AND r.isDeleted = false
+    """)
+    long countByMemberAndCreatedAtBetweenAndIsDeletedFalse(Member member, LocalDateTime startOfMonth, LocalDateTime startOfNextMonth);
+
+    long countByMemberAndReviewDateBetweenAndIsDeletedFalse(Member member, LocalDate from, LocalDate to);
+
+    long countByMemberAndIsDeletedFalse(Member member);
 }

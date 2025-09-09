@@ -5,6 +5,7 @@ import com.careerpirates.resumate.analysis.application.dto.response.AnalysisResp
 import com.careerpirates.resumate.analysis.application.dto.response.AnalysisResultDto;
 import com.careerpirates.resumate.analysis.application.dto.response.GPTResponse;
 import com.careerpirates.resumate.analysis.domain.Analysis;
+import com.careerpirates.resumate.analysis.domain.AnalysisStatus;
 import com.careerpirates.resumate.analysis.event.AnalysisCompletedEvent;
 import com.careerpirates.resumate.analysis.event.AnalysisErrorEvent;
 import com.careerpirates.resumate.analysis.infrastructure.AnalysisRepository;
@@ -154,6 +155,11 @@ public class AnalysisService {
 
         Slice<Analysis> analysisList = analysisRepository.findByMemberIdOrderByCreatedAtDesc(memberId, pageable);
         return AnalysisListResponse.of(analysisList);
+    }
+
+    @Transactional(readOnly = true)
+    public long countTotalAnalysis(Long memberId) {
+        return analysisRepository.countByMemberIdAndStatus(memberId, AnalysisStatus.SUCCESS);
     }
 
     private void findReusableAnalysis(Folder folder, Long memberId) {
