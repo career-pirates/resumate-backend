@@ -46,4 +46,16 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     @Modifying
     @Transactional
     long deleteByIsDeletedTrueAndDeletedAtBefore(LocalDateTime threshold);
+
+    @Query("""
+        SELECT COUNT(r)
+        FROM Review r
+        WHERE r.member = :member
+          AND r.createdAt >= :startOfMonth
+          AND r.createdAt < :startOfNextMonth
+          AND r.isDeleted = false
+    """)
+    long countByMemberAndCreatedAtBetweenAndIsDeletedFalse(Member member, LocalDateTime startOfMonth, LocalDateTime startOfNextMonth);
+
+    long countByMemberAndIsDeletedFalse(Member member);
 }

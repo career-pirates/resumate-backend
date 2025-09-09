@@ -1,5 +1,7 @@
 package com.careerpirates.resumate.review.application.service;
 
+import java.time.LocalDateTime;
+
 import com.careerpirates.resumate.folder.domain.Folder;
 import com.careerpirates.resumate.folder.infrastructure.FolderRepository;
 import com.careerpirates.resumate.folder.message.exception.FolderError;
@@ -170,6 +172,38 @@ public class ReviewService {
 
         Slice<Review> reviews = reviewRepository.findByFolderAndIsCompletedAndIsDeleted(folder, member, isCompleted, isDeleted, pageRequest);
         return ReviewListResponse.of(reviews, folder);
+    }
+
+    @Transactional(readOnly = true)
+    public long countMonthlyReview(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+            .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        LocalDateTime now = LocalDateTime.now();
+
+        // 이번 달 1일 00:00:00
+        LocalDateTime startOfMonth = now.withDayOfMonth(1)
+            .withHour(0)
+            .withMinute(0)
+            .withSecond(0)
+            .withNano(0);
+
+        // 다음 달 1일 00:00:00
+        LocalDateTime startOfNextMonth = startOfMonth.plusMonths(1);
+
+        return reviewRepository.countByMemberAndCreatedAtBetweenAndIsDeletedFalse(
+            member,
+            startOfMonth,
+            startOfNextMonth
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public long countTotalReview(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+            .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        return reviewRepository.countByMemberAndIsDeletedFalse(member);
     }
 
     private String getShortDescription(ReviewRequest request) {
