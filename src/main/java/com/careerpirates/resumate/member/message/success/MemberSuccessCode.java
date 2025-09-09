@@ -9,7 +9,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum MemberSuccessCode implements SuccessCode {
 
-	GET_STATISTICS(HttpStatus.OK, "회원 통계 정보 조회 성공");
+	GET_STATISTICS(HttpStatus.OK, "회원 통계 정보 조회 성공"),
+	NICKNAME_SET_SUCCESS(HttpStatus.OK, "닉네임 설정 성공");
 
 	private final HttpStatus status;
 	private final String message;
