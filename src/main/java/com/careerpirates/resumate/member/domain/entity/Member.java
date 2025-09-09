@@ -1,4 +1,7 @@
-						package com.careerpirates.resumate.member.domain.entity;
+package com.careerpirates.resumate.member.domain.entity;
+
+import java.time.LocalDate;
+import java.time.Period;
 
 import com.careerpirates.resumate.global.domain.BaseEntity;
 import com.careerpirates.resumate.member.domain.enums.OAuthProvider;
@@ -52,6 +55,12 @@ public class Member extends BaseEntity {
 	@Column(name = "role", nullable = false)
 	private Role role;
 
+	@Column(name = "continuous_days")
+	private Long continuousDays;
+
+	@Column(name = "last_review_date")
+	private LocalDate lastReviewDate;
+
 	@Builder
 	public Member(String providerUserId, OAuthProvider provider, String email, String nickname, Role role) {
 		this.providerUserId = providerUserId;
@@ -59,6 +68,7 @@ public class Member extends BaseEntity {
 		this.email = email;
 		this.nickname = nickname;
 		this.role = role;
+		this.continuousDays = 0L;
 	}
 
 	public void updateNickName(String nickname) {
