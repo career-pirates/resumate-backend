@@ -27,6 +27,7 @@ public class MemberService {
 			.orElseGet(() -> createMember(providerUserId, provider, email));
 	}
 
+	@Transactional(readOnly = true)
 	public Long getContinuousDays(Long memberId) {
 		return memberRepository.findContinuousDaysById(memberId)
 			.orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));

@@ -21,6 +21,6 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 	 * @param memberId 회원 ID
 	 * @return 연속 일수 (회원이 없으면 Optional.empty())
 	 */
-	@Query("SELECT m.continuousDays FROM Member m WHERE m.id = :memberId")
+	@Query("SELECT COALESCE(m.continuousDays, 0) FROM Member m WHERE m.id = :memberId")
 	Optional<Long> findContinuousDaysById(@Param("memberId") Long memberId);
 }
