@@ -38,7 +38,7 @@ public class MemberService {
 		Member member = memberRepository.findById(memberId)
 			.orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
 
-		member.updateNickName(nickname);
+		member.updateNickName(nickname.strip());
 	}
 
 	private void validEmail(String email) {
