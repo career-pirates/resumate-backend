@@ -9,9 +9,10 @@ import java.util.Optional;
 
 public interface AnalysisRepository extends JpaRepository<Analysis, Long> {
 
-    Optional<Analysis> findByIdAndFolderId(Long id, Long folderId);
+    Optional<Analysis> findByIdAndMemberIdAndFolderId(Long id, Long memberId, Long folderId);
 
-    Optional<Analysis> findTop1ByFolderIdOrderByCreatedAtDesc(Long folderId);
+    Optional<Analysis> findTop1ByMemberIdAndFolderIdOrderByCreatedAtDesc(Long memberId, Long folderId);
 
-    Slice<Analysis> findAllByOrderByCreatedAtDesc(Pageable pageable);
+    Slice<Analysis> findByMemberIdOrderByCreatedAtDesc(Long memberId, Pageable pageable);
+
 }

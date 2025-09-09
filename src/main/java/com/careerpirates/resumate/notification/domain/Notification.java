@@ -1,6 +1,9 @@
 package com.careerpirates.resumate.notification.domain;
 
 import com.careerpirates.resumate.global.domain.BaseEntity;
+import com.careerpirates.resumate.global.message.exception.core.BusinessException;
+import com.careerpirates.resumate.member.domain.entity.Member;
+import com.careerpirates.resumate.notification.message.exception.NotificationError;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -22,6 +25,10 @@ public class Notification extends BaseEntity {
     @Column(name = "id")
     private Long id;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
+
     @Column(name = "title", nullable = false, length = 50)
     private String title;
 
@@ -38,7 +45,11 @@ public class Notification extends BaseEntity {
     private boolean isDeleted;
 
     @Builder
-    public Notification(String title, String message, String url) {
+    public Notification(Member member, String title, String message, String url) {
+        if (member == null)
+            throw new BusinessException(NotificationError.MEMBER_INVALID);
+
+        this.member = member;
         this.title = title;
         this.message = message;
         this.url = url;

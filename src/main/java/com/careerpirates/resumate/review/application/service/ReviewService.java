@@ -4,6 +4,9 @@ import com.careerpirates.resumate.folder.domain.Folder;
 import com.careerpirates.resumate.folder.infrastructure.FolderRepository;
 import com.careerpirates.resumate.folder.message.exception.FolderError;
 import com.careerpirates.resumate.global.message.exception.core.BusinessException;
+import com.careerpirates.resumate.member.domain.entity.Member;
+import com.careerpirates.resumate.member.infrastructure.MemberRepository;
+import com.careerpirates.resumate.member.message.exception.MemberErrorCode;
 import com.careerpirates.resumate.review.application.dto.request.ReviewRequest;
 import com.careerpirates.resumate.review.application.dto.request.ReviewSortType;
 import com.careerpirates.resumate.review.application.dto.response.ReviewListResponse;
@@ -25,14 +28,18 @@ public class ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final FolderRepository folderRepository;
+    private final MemberRepository memberRepository;
 
     @Transactional
-    public ReviewResponse createReview(ReviewRequest request) {
-        Folder folder = folderRepository.findById(request.folderId())
+    public ReviewResponse createReview(ReviewRequest request, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+        Folder folder = folderRepository.findByIdAndMember(request.folderId(), member)
                 .orElseThrow(() -> new BusinessException(FolderError.FOLDER_NOT_FOUND));
 
         Review review = Review.builder()
                 .folder(folder)
+                .member(member)
                 .title(request.title())
                 .description(getShortDescription(request))
                 .positives(request.positives())
@@ -53,10 +60,13 @@ public class ReviewService {
     }
 
     @Transactional
-    public ReviewResponse updateReview(Long id, ReviewRequest request) {
-        Review review = reviewRepository.findByIdAndIsDeletedFalse(id)
+    public ReviewResponse updateReview(Long id, ReviewRequest request, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        Review review = reviewRepository.findByIdAndMemberAndIsDeletedFalse(id, member)
                 .orElseThrow(() -> new BusinessException(ReviewError.REVIEW_NOT_FOUND));
-        Folder folder = folderRepository.findById(request.folderId())
+        Folder folder = folderRepository.findByIdAndMember(request.folderId(), member)
                 .orElseThrow(() -> new BusinessException(FolderError.FOLDER_NOT_FOUND));
 
         review.updateReview(
@@ -83,8 +93,10 @@ public class ReviewService {
     }
 
     @Transactional
-    public void deleteReview(Long id) {
-        Review review = reviewRepository.findByIdAndIsDeletedFalse(id)
+    public void deleteReview(Long id, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+        Review review = reviewRepository.findByIdAndMemberAndIsDeletedFalse(id, member)
                 .orElseThrow(() -> new BusinessException(ReviewError.REVIEW_NOT_FOUND));
 
         // 폴더의 마지막 수정일시 갱신
@@ -97,18 +109,23 @@ public class ReviewService {
     }
 
     @Transactional
-    public void deleteReviewPermanently(Long id) {
-        Review review = reviewRepository.findByIdAndIsDeletedTrue(id)
+    public void deleteReviewPermanently(Long id, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+        Review review = reviewRepository.findByIdAndMemberAndIsDeletedTrue(id, member)
                 .orElseThrow(() -> new BusinessException(ReviewError.REVIEW_NOT_FOUND));
 
         reviewRepository.delete(review);
     }
 
     @Transactional
-    public void restoreReview(Long id, Long folderId) {
-        Review review = reviewRepository.findByIdAndIsDeletedTrue(id)
+    public void restoreReview(Long id, Long folderId, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        Review review = reviewRepository.findByIdAndMemberAndIsDeletedTrue(id, member)
                 .orElseThrow(() -> new BusinessException(ReviewError.REVIEW_NOT_FOUND));
-        Folder folder = folderRepository.findById(folderId)
+        Folder folder = folderRepository.findByIdAndMember(folderId, member)
                 .orElseThrow(() -> new BusinessException(FolderError.FOLDER_NOT_FOUND));
 
         review.restore(folder);
@@ -120,28 +137,38 @@ public class ReviewService {
     }
 
     @Transactional(readOnly = true)
-    public ReviewResponse getReview(Long id) {
-        Review review = reviewRepository.findByIdAndIsDeletedFalse(id)
+    public ReviewResponse getReview(Long id, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+        Review review = reviewRepository.findByIdAndMemberAndIsDeletedFalse(id, member)
                 .orElseThrow(() -> new BusinessException(ReviewError.REVIEW_NOT_FOUND));
 
         return ReviewResponse.of(review);
     }
 
     @Transactional(readOnly = true)
-    public ReviewListResponse getReviews(int page, int size, ReviewSortType sort, Boolean isCompleted, Boolean isDeleted) {
+    public ReviewListResponse getReviews(int page, int size, ReviewSortType sort, Boolean isCompleted,
+                                         Boolean isDeleted, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+
         PageRequest pageRequest = PageRequest.of(page, size, sort.getSort());
 
-        Slice<Review> reviews = reviewRepository.findByIsCompletedAndIsDeleted(isCompleted, isDeleted, pageRequest);
+        Slice<Review> reviews = reviewRepository.findByIsCompletedAndIsDeleted(member, isCompleted, isDeleted, pageRequest);
         return ReviewListResponse.of(reviews);
     }
 
     @Transactional(readOnly = true)
-    public ReviewListResponse getReviewsByFolder(Long folderId, int page, int size, ReviewSortType sort, Boolean isCompleted, Boolean isDeleted) {
-        Folder folder = folderRepository.findById(folderId)
+    public ReviewListResponse getReviewsByFolder(Long folderId, int page, int size, ReviewSortType sort,
+                                                 Boolean isCompleted, Boolean isDeleted, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        Folder folder = folderRepository.findByIdAndMember(folderId, member)
                 .orElseThrow(() -> new BusinessException(FolderError.FOLDER_NOT_FOUND));
         PageRequest pageRequest = PageRequest.of(page, size, sort.getSort());
 
-        Slice<Review> reviews = reviewRepository.findByFolderAndIsCompletedAndIsDeleted(folder, isCompleted, isDeleted, pageRequest);
+        Slice<Review> reviews = reviewRepository.findByFolderAndIsCompletedAndIsDeleted(folder, member, isCompleted, isDeleted, pageRequest);
         return ReviewListResponse.of(reviews, folder);
     }
 

@@ -1,24 +1,31 @@
 package com.careerpirates.resumate.notification.application.service;
 
+import com.careerpirates.resumate.member.domain.entity.Member;
+import com.careerpirates.resumate.member.domain.enums.OAuthProvider;
+import com.careerpirates.resumate.member.infrastructure.MemberRepository;
 import com.careerpirates.resumate.notification.application.dto.response.NotificationListResponse;
 import com.careerpirates.resumate.notification.domain.Notification;
 import com.careerpirates.resumate.notification.infrastructure.NotificationRepository;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.Optional;
 
+import static com.careerpirates.resumate.folder.factory.FolderTestFactory.createDefaultFolders;
+import static com.careerpirates.resumate.member.factory.MemberFactory.createMember;
 import static com.careerpirates.resumate.notification.factory.NotificationTestFactory.createNotification;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
+@Transactional
 @SpringBootTest
 @ActiveProfiles("test")
 class NotificationServiceTest {
@@ -27,20 +34,23 @@ class NotificationServiceTest {
     private NotificationService notificationService;
     @Autowired
     private NotificationRepository notificationRepository;
+    @Autowired
+    private MemberRepository memberRepository;
 
-    @AfterEach
-    void tearDown() {
-        notificationRepository.deleteAllInBatch();
+    @BeforeEach
+    void setUp() {
+        memberRepository.save(createMember("test"));
     }
 
     @Test
     @DisplayName("알림을 읽음 처리합니다.")
     void markAsRead_success() {
         // given
-        Notification n1 = notificationRepository.save(createNotification("알림1"));
+        Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
+        Notification n1 = notificationRepository.save(createNotification("알림1", member));
 
         // when
-        notificationService.markAsRead(n1.getId());
+        notificationService.markAsRead(n1.getId(), member.getId());
 
         // then
         Notification found = notificationRepository.findById(n1.getId()).get();
@@ -52,10 +62,11 @@ class NotificationServiceTest {
     @DisplayName("알림을 삭제합니다.")
     void deleteNotification_success() {
         // given
-        Notification n1 = notificationRepository.save(createNotification("알림1"));
+        Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
+        Notification n1 = notificationRepository.save(createNotification("알림1", member));
 
         // when
-        notificationService.deleteNotification(n1.getId());
+        notificationService.deleteNotification(n1.getId(), member.getId());
 
         // then
         Optional<Notification> found = notificationRepository.findById(n1.getId());
@@ -73,10 +84,11 @@ class NotificationServiceTest {
     })
     void getNotifications_success(String cursorIdxStr, int size, boolean expectedHasNext, int expectedSize) {
         // given
-        Notification n1 = notificationRepository.save(createNotification("알림1"));
-        Notification n2 = notificationRepository.save(createNotification("알림2"));
-        Notification n3 = notificationRepository.save(createNotification("알림3"));
-        Notification n4 = notificationRepository.save(createNotification("알림4"));
+        Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
+        Notification n1 = notificationRepository.save(createNotification("알림1", member));
+        Notification n2 = notificationRepository.save(createNotification("알림2", member));
+        Notification n3 = notificationRepository.save(createNotification("알림3", member));
+        Notification n4 = notificationRepository.save(createNotification("알림4", member));
 
         List<Long> ids = List.of(n1.getId(), n2.getId(), n3.getId(), n4.getId());
 
@@ -85,7 +97,7 @@ class NotificationServiceTest {
                 : ids.get(Integer.parseInt(cursorIdxStr));
 
         // when
-        NotificationListResponse response = notificationService.getNotifications(cursorId, size);
+        NotificationListResponse response = notificationService.getNotifications(cursorId, size, member.getId());
 
         // then
         assertThat(response.isHasNext()).isEqualTo(expectedHasNext);
@@ -101,8 +113,11 @@ class NotificationServiceTest {
     @Test
     @DisplayName("알림 목록을 조회합니다. (알림 없음)")
     void getNotifications_empty() {
+        // given
+        Member member = memberRepository.findByProviderAndProviderUserId(OAuthProvider.GOOGLE, "1").orElseThrow();
+
         // when
-        NotificationListResponse response = notificationService.getNotifications(null, 10);
+        NotificationListResponse response = notificationService.getNotifications(null, 10, member.getId());
 
         // then
         assertThat(response)

@@ -2,6 +2,9 @@ package com.careerpirates.resumate.review.domain;
 
 import com.careerpirates.resumate.folder.domain.Folder;
 import com.careerpirates.resumate.global.domain.BaseEntity;
+import com.careerpirates.resumate.global.message.exception.core.BusinessException;
+import com.careerpirates.resumate.member.domain.entity.Member;
+import com.careerpirates.resumate.review.message.exception.ReviewError;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,6 +25,10 @@ public class Review extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "folder_id")
     private Folder folder;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
 
     @Column(name = "title", nullable = false, length = 100)
     private String title;
@@ -54,9 +61,15 @@ public class Review extends BaseEntity {
     private LocalDateTime deletedAt;
 
     @Builder
-    public Review(Folder folder, String title, String description, String positives, String improvements,
+    public Review(Folder folder, Member member, String title, String description, String positives, String improvements,
                   String learnings, String aspirations, boolean isCompleted, LocalDate reviewDate) {
+        if (member == null)
+            throw new BusinessException(ReviewError.MEMBER_INVALID);
+        if (folder != null && folder.getMember() != null && !folder.getMember().getId().equals(member.getId()))
+            throw new BusinessException(ReviewError.FOLDER_OWNER_INVALID);
+
         this.folder = folder;
+        this.member = member;
         this.title = title;
         this.description = description;
         this.positives = positives;

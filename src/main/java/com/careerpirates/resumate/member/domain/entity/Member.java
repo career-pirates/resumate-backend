@@ -1,4 +1,4 @@
-package com.careerpirates.resumate.member.domain.entity;
+						package com.careerpirates.resumate.member.domain.entity;
 
 import com.careerpirates.resumate.global.domain.BaseEntity;
 import com.careerpirates.resumate.member.domain.enums.OAuthProvider;
