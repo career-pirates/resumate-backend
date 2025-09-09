@@ -1,5 +1,6 @@
 package com.careerpirates.resumate.review.application.service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.careerpirates.resumate.folder.domain.Folder;
@@ -181,19 +182,11 @@ public class ReviewService {
         Member member = memberRepository.findById(memberId)
             .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDate now = LocalDate.now();
+        LocalDate startOfMonth = now.withDayOfMonth(1);
+        LocalDate startOfNextMonth = startOfMonth.plusMonths(1);
 
-        // 이번 달 1일 00:00:00
-        LocalDateTime startOfMonth = now.withDayOfMonth(1)
-            .withHour(0)
-            .withMinute(0)
-            .withSecond(0)
-            .withNano(0);
-
-        // 다음 달 1일 00:00:00
-        LocalDateTime startOfNextMonth = startOfMonth.plusMonths(1);
-
-        return reviewRepository.countByMemberAndCreatedAtBetweenAndIsDeletedFalse(
+        return reviewRepository.countByMemberAndReviewDateBetweenAndIsDeletedFalse(
             member,
             startOfMonth,
             startOfNextMonth
