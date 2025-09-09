@@ -1,7 +1,6 @@
 package com.careerpirates.resumate.review.application.service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 import com.careerpirates.resumate.folder.domain.Folder;
 import com.careerpirates.resumate.folder.infrastructure.FolderRepository;
