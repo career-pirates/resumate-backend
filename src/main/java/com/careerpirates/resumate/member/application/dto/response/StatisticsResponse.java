@@ -15,10 +15,10 @@ public class StatisticsResponse {
 	public static StatisticsResponse of(Long monthlyReviewCount, Long totalReviewCount, Long totalAnalysisCount,
 		Long continuousDays) {
 		return StatisticsResponse.builder()
-			.monthlyReviewCount(monthlyReviewCount)
-			.totalReviewCount(totalReviewCount)
-			.totalAnalysisCount(totalAnalysisCount)
-			.continuousDays(continuousDays)
+			.monthlyReviewCount(monthlyReviewCount == null ? 0L : monthlyReviewCount)
+			.totalReviewCount(totalReviewCount == null ? 0L : totalReviewCount)
+			.totalAnalysisCount(totalAnalysisCount == null ? 0L : totalAnalysisCount)
+			.continuousDays(continuousDays == null ? 0L : continuousDays)
 			.build();
 	}
 }
