@@ -1,6 +1,8 @@
 package com.careerpirates.resumate.analysis.infrastructure;
 
 import com.careerpirates.resumate.analysis.domain.Analysis;
+import com.careerpirates.resumate.analysis.domain.AnalysisStatus;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,5 +17,5 @@ public interface AnalysisRepository extends JpaRepository<Analysis, Long> {
 
     Slice<Analysis> findByMemberIdOrderByCreatedAtDesc(Long memberId, Pageable pageable);
 
-    long countByMemberId(Long memberId);
+    long countByMemberIdAndStatus(Long memberId, AnalysisStatus status);
 }
