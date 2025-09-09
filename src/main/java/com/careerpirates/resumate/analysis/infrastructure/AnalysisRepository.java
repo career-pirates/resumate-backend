@@ -15,4 +15,5 @@ public interface AnalysisRepository extends JpaRepository<Analysis, Long> {
 
     Slice<Analysis> findByMemberIdOrderByCreatedAtDesc(Long memberId, Pageable pageable);
 
+    long countByMemberId(Long memberId);
 }

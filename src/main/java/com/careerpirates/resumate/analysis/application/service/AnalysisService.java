@@ -156,6 +156,11 @@ public class AnalysisService {
         return AnalysisListResponse.of(analysisList);
     }
 
+    @Transactional(readOnly = true)
+    public long countTotalAnalysis(Long memberId) {
+        return analysisRepository.countByMemberId(memberId);
+    }
+
     private void findReusableAnalysis(Folder folder, Long memberId) {
         Optional<Analysis> reusable = analysisRepository.findTop1ByMemberIdAndFolderIdOrderByCreatedAtDesc(memberId, folder.getId())
                 .filter(analysis -> isReusable(analysis, folder));
