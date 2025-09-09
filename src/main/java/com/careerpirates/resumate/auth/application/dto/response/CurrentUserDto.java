@@ -12,12 +12,14 @@ public class CurrentUserDto {
 	Long memberId;
 	String email;
 	String nickname;
+	boolean needsNicknameSetup;
 
 	public static CurrentUserDto of(Member member) {
 		return CurrentUserDto.builder()
 			.memberId(member.getId())
 			.email(member.getEmail())
 			.nickname(member.getNickname())
+			.needsNicknameSetup(member.getNickname().isEmpty())
 			.build();
 	}
 }
