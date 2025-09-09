@@ -1,6 +1,7 @@
 package com.careerpirates.resumate.review.application.service;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 
 import com.careerpirates.resumate.folder.domain.Folder;
 import com.careerpirates.resumate.folder.infrastructure.FolderRepository;
@@ -181,14 +182,14 @@ public class ReviewService {
         Member member = memberRepository.findById(memberId)
             .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
 
-        LocalDate now = LocalDate.now();
-        LocalDate startOfMonth = now.withDayOfMonth(1);
-        LocalDate startOfNextMonth = startOfMonth.plusMonths(1);
+        YearMonth ym = YearMonth.from(LocalDate.now());
+        LocalDate from = ym.atDay(1);
+        LocalDate to = ym.atEndOfMonth();
 
         return reviewRepository.countByMemberAndReviewDateBetweenAndIsDeletedFalse(
             member,
-            startOfMonth,
-            startOfNextMonth
+            from,
+            to
         );
     }
 
