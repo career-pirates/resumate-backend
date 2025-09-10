@@ -30,9 +30,10 @@ public class SecurityConfig {
 		"/swagger-ui/**",
 		"/swagger-ui.html",
 		"/actuator/health",
-		"/actuator/prometheus",
+		"/actuator/prometheus/**",
 		"/login/**",
-		"/api/auth/reissue"
+		"/api/auth/reissue",
+		"/api/analysis/metrics/**"
 	};
 
 	private final CustomAuthenticationEntryPoint entryPoint;
