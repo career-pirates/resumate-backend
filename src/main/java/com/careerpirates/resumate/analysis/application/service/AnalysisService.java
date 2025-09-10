@@ -34,7 +34,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -146,7 +149,13 @@ public class AnalysisService {
                     .orElseThrow(() -> new BusinessException(AnalysisError.ANALYSIS_NOT_FOUND));
         }
 
-        return AnalysisResponse.of(analysis);
+        Member member = memberRepository.findById(memberId).orElseThrow(
+                () -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND)
+        );
+        Folder folder = folderRepository.findByIdAndMember(analysis.getFolderId(), member)
+                .orElse(null);
+
+        return AnalysisResponse.of(analysis, folder);
     }
 
     @Transactional(readOnly = true)
@@ -154,7 +163,16 @@ public class AnalysisService {
         Pageable pageable = PageRequest.of(page, size);
 
         Slice<Analysis> analysisList = analysisRepository.findByMemberIdOrderByCreatedAtDesc(memberId, pageable);
-        return AnalysisListResponse.of(analysisList);
+
+        Member member = memberRepository.findById(memberId).orElseThrow(
+                () -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND)
+        );
+        List<Folder> folders = folderRepository.findByIdInAndMember(
+                analysisList.stream().map(Analysis::getFolderId).toList(), member
+        );
+        Map<Long, Folder> folderMap = folders.stream().collect(Collectors.toMap(Folder::getId, Function.identity()));
+
+        return AnalysisListResponse.of(analysisList, folderMap);
     }
 
     @Transactional(readOnly = true)
