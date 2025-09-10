@@ -73,7 +73,8 @@ public class AnalysisMetricsService {
      * 분석이 완료될 때 호출 (PENDING -> SUCCESS)
      */
     public void onAnalysisCompleted() {
-        long currentCount = pendingAnalysisCount.decrementAndGet();
+        long currentCount = pendingAnalysisCount.updateAndGet(count -> Math.max(0, count - 1));
+
         log.debug("Analysis completed - Current pending count: {}", currentCount);
     }
 
@@ -81,7 +82,8 @@ public class AnalysisMetricsService {
      * 분석이 실패할 때 호출 (PENDING -> ERROR)
      */
     public void onAnalysisError() {
-        long currentCount = pendingAnalysisCount.decrementAndGet();
+        long currentCount = pendingAnalysisCount.updateAndGet(count -> Math.max(0, count - 1));
+
         log.debug("Analysis failed - Current pending count: {}", currentCount);
     }
 

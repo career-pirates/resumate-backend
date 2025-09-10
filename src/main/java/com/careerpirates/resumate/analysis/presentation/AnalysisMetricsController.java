@@ -6,6 +6,9 @@ import com.careerpirates.resumate.analysis.message.success.AnalysisSuccess;
 import com.careerpirates.resumate.global.message.success.SuccessResponse;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,6 +21,7 @@ import java.util.Map;
 /**
  * 분석 메트릭을 확인하고 테스트하기 위한 임시 Controller 개발/테스트 목적으로만 사용하고 프로덕션에서는 제거 권장
  */
+@Profile("dev")
 @RestController
 @RequestMapping("/api/analysis/metrics")
 @RequiredArgsConstructor

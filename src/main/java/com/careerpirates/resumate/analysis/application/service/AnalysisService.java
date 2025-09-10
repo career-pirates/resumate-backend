@@ -82,7 +82,10 @@ public class AnalysisService {
             openAIService.sendRequest(analysis.getId(), userInput);
         } catch (Exception e) {
             analysis.setError(e.getMessage());
-            analysisMetricsService.onAnalysisError();
+
+            if (analysis.getStatus() == AnalysisStatus.PENDING) {
+                analysisMetricsService.onAnalysisError();
+            }
         } finally {
             analysisRepository.save(analysis);
         }
@@ -134,7 +137,11 @@ public class AnalysisService {
                 .orElseThrow(() -> new BusinessException(AnalysisError.ANALYSIS_NOT_FOUND));
 
         analysis.setError(event.getE().getMessage());
-        analysisMetricsService.onAnalysisError();
+
+        if (analysis.getStatus() == AnalysisStatus.PENDING) {
+            analysisMetricsService.onAnalysisError();
+        }
+
         analysisRepository.save(analysis);
 
         sendFailMessage(analysis);
