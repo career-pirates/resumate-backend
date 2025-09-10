@@ -23,4 +23,8 @@ public class OpenAIRateLimiter {
     public boolean tryConsume() {
         return bucket.tryConsume(1);
     }
+
+    public boolean canConsume() {
+        return bucket.getAvailableTokens() > 0; // 토큰 소모 X
+    }
 }
