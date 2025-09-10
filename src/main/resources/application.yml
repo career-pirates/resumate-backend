@@ -4,11 +4,24 @@ spring:
   profiles:
     active: dev
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, health, metrics
+  metrics:
+    tags:
+      application: resumate-backend
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
 cors:
   allowed-origin-patterns:
     - http://localhost:5173
     - http://localhost:8080
-    - https://career-pirates-resumate-git-main-seeunjungs-projects.vercel.app
+    - https://career-pirates-resumate.vercel.app
   allowed-origin-methods:
     - GET
     - POST
