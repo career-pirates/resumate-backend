@@ -1,5 +1,6 @@
 package com.careerpirates.resumate.analysis.application.service;
 
+import com.careerpirates.resumate.analysis.domain.Analysis;
 import com.careerpirates.resumate.analysis.domain.AnalysisStatus;
 import com.careerpirates.resumate.analysis.infrastructure.AnalysisRepository;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -8,6 +9,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -110,5 +112,75 @@ public class AnalysisMetricsService {
             pendingAnalysisCount.set(dbPendingCount);
             log.info("Metrics synchronized - Updated pending count to: {}", dbPendingCount);
         }
+    }
+
+    // =================== 테스트용 메서드들 (실제 DB 조작) ===================
+
+    /**
+     * 테스트용: 실제 Analysis 엔티티를 PENDING 상태로 생성 완전한 메트릭 테스트를 위해 실제 DB에 테스트 데이터 생성
+     */
+    @Transactional
+    public void createTestAnalysis() {
+        Analysis testAnalysis = Analysis.builder()
+            .memberId(-999L) // 테스트 식별용 특수 ID
+            .folderId(-999L) // 테스트 식별용 특수 ID
+            .folderName("TEST_METRICS_FOLDER")
+            .build();
+
+        // Analysis 엔티티는 기본적으로 IDLE 상태로 생성됨
+        testAnalysis.startAnalysis("TEST_METRICS_INPUT"); // PENDING 상태로 변경
+
+        analysisRepository.save(testAnalysis);
+        onAnalysisStarted(); // 메모리 카운터도 업데이트
+
+        log.info("Test analysis created with PENDING status - ID: {}", testAnalysis.getId());
+    }
+
+    /**
+     * 테스트용: 가장 최근의 PENDING 테스트 분석을 SUCCESS로 변경
+     */
+    @Transactional
+    public void completeTestAnalysis() {
+        analysisRepository
+            .findTopByMemberIdAndStatusOrderByCreatedAtDesc(-999L, AnalysisStatus.PENDING)
+            .ifPresentOrElse(analysis -> {
+                analysis.finishAnalysis(
+                    "TEST COMPLETED",
+                    "TEST STRENGTH",
+                    "TEST SUGGESTION",
+                    "TEST KEYWORD",
+                    "TEST REC_KEYWORD",
+                    "TEST API_ID",
+                    100L,
+                    200L);
+                analysisRepository.save(analysis);
+                onAnalysisCompleted(); // 메모리 카운터도 업데이트
+                log.info("Test analysis completed - ID: {}", analysis.getId());
+            }, () -> log.warn("No PENDING test analysis found to complete"));
+    }
+
+    /**
+     * 테스트용: 가장 최근의 PENDING 테스트 분석을 ERROR로 변경
+     */
+    @Transactional
+    public void errorTestAnalysis() {
+        analysisRepository
+            .findTopByMemberIdAndStatusOrderByCreatedAtDesc(-999L, AnalysisStatus.PENDING)
+            .ifPresentOrElse(analysis -> {
+                analysis.setError("TEST ERROR MESSAGE");
+                analysisRepository.save(analysis);
+                onAnalysisError(); // 메모리 카운터도 업데이트
+                log.info("Test analysis set to error - ID: {}", analysis.getId());
+            }, () -> log.warn("No PENDING test analysis found to error"));
+    }
+
+    /**
+     * 테스트용: 모든 테스트 분석 데이터 정리
+     */
+    @Transactional
+    public void cleanupTestAnalyses() {
+        long deletedCount = analysisRepository.deleteByMemberId(-999L);
+        synchronizeMetrics(); // 메모리 상태 동기화
+        log.info("Cleaned up {} test analyses", deletedCount);
     }
 }
