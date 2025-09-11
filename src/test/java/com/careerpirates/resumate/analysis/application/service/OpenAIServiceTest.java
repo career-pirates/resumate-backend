@@ -29,8 +29,6 @@ class OpenAIServiceTest {
     private RedisQueue redisQueue;
 
     @MockitoBean
-    private OpenAIRateLimiter rateLimiter;
-    @MockitoBean
     private AnalysisService analysisService;
     @MockitoBean
     private WebClient webClient;
@@ -42,7 +40,6 @@ class OpenAIServiceTest {
         openAIService = new OpenAIService(
                 webClient,
                 properties,
-                rateLimiter,
                 eventPublisher,
                 redisQueue
         );
@@ -52,7 +49,7 @@ class OpenAIServiceTest {
     @DisplayName("OpenAI API 콜 제한에 도달하면 Redis 기반 큐에 요청을 넣습니다.")
     void sendRequest_tooManyRequests() {
         // given
-        while (rateLimiter.tryConsume()) { /* 소비해서 버킷 비우기 */ }
+        while (openAIService.tryConsumeLimiter() != null) { /* 소비해서 버킷 비우기 */ }
         Long analysisId = 1L;
 
         // when
@@ -61,6 +58,4 @@ class OpenAIServiceTest {
         // then
         assertThat(redisQueue.isQueueEmpty()).isFalse();
     }
-
-
 }
