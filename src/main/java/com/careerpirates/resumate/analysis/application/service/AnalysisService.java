@@ -51,6 +51,7 @@ public class AnalysisService {
     private final ReviewRepository reviewRepository;
     private final AnalysisRepository analysisRepository;
     private final MemberRepository memberRepository;
+    private final AnalysisMetricsService analysisMetricsService;
 
     @Transactional
     public void requestAnalysis(Long folderId, Long memberId) {
@@ -82,9 +83,14 @@ public class AnalysisService {
             analysis.startAnalysis(userInput);
             openAIService.sendRequest(analysis.getId(), userInput);
         } catch (Exception e) {
+            AnalysisStatus prev = analysis.getStatus();
             analysis.setError(e.getMessage());
+            if (prev == AnalysisStatus.PENDING) {
+                analysisMetricsService.onAnalysisError();
+            }
         } finally {
             analysisRepository.save(analysis);
+            analysisMetricsService.onAnalysisStarted();
         }
     }
 
@@ -113,10 +119,12 @@ public class AnalysisService {
                     response.getUsage().getOutputTokens()
             );
 
+            analysisMetricsService.onAnalysisCompleted();
             sendCompleteMessage(analysis);
         } catch (Exception e) {
             log.warn(e.getMessage());
             analysis.setError(e.getMessage());
+            analysisMetricsService.onAnalysisError();
             sendFailMessage(analysis);
         } finally {
             analysisRepository.save(analysis);
@@ -131,7 +139,12 @@ public class AnalysisService {
         Analysis analysis = analysisRepository.findById(analysisId)
                 .orElseThrow(() -> new BusinessException(AnalysisError.ANALYSIS_NOT_FOUND));
 
+        AnalysisStatus prev = analysis.getStatus();
         analysis.setError(event.getE().getMessage());
+        if (prev == AnalysisStatus.PENDING) {
+            analysisMetricsService.onAnalysisError();
+        }
+
         analysisRepository.save(analysis);
 
         sendFailMessage(analysis);

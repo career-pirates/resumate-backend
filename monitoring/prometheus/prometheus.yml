@@ -1,0 +1,26 @@
+global:
+  scrape_interval: 15s # 기본 스크래핑 간격
+  evaluation_interval: 15s # 룰 평가 간격
+
+scrape_configs:
+  # Prometheus 자체 모니터링
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Spring Boot 애플리케이션 모니터링
+  - job_name: 'resumate-backend'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 30s # DB 부하 감소를 위해 조정 (5초 → 30초)
+    static_configs:
+      - targets: ['host.docker.internal:8080']
+    
+  # PostgreSQL 모니터링 (postgres_exporter 사용 시)
+  # - job_name: 'postgres'
+  #   static_configs:
+  #     - targets: ['postgres-exporter:9187']
+
+  # Redis 모니터링 (redis_exporter 사용 시)  
+  # - job_name: 'redis'
+  #   static_configs:
+  #     - targets: ['redis-exporter:9121']
