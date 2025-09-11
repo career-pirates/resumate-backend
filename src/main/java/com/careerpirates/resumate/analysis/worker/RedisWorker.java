@@ -18,10 +18,8 @@ public class RedisWorker {
 
     @Async("workerExecutor")
     public void process(AnalysisRequestDto request) {
-        if (openAIService.canConsume()) {
-            log.info("큐에서 꺼낸 분석 요청 수행: { analysisId={} }", request.analysisId());
-            openAIService.sendRequest(request.analysisId(), request.userInput());
-        }
+        log.info("큐에서 꺼낸 분석 요청 수행: { analysisId={} }", request.analysisId());
+        openAIService.sendRequest(request.analysisId(), request.userInput());
     }
 
     /**

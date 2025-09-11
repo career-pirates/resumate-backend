@@ -58,11 +58,22 @@ public class OpenAIProperties {
     @PostConstruct
     public void init() {
         this.apiKeys = apiKey.stream()
+                .map(String::trim)
+                .filter(s -> !s.isBlank())
                 .map(APIKey::fromString)
                 .toList();
 
         this.prompts = prompt.stream()
+                .map(String::trim)
+                .filter(s -> !s.isBlank())
                 .map(Prompt::fromString)
                 .toList();
+        
+        if (this.apiKeys.isEmpty() || this.prompts.isEmpty()) {
+            throw new IllegalStateException("OpenAI API 키와 프롬프트 환경변수를 설정하세요.");
+        }
+        if (this.apiKey.size() != this.prompts.size()) {
+            throw new IllegalStateException("OpenAI API 키와 프롬프트 환경변수 개수가 일치하지 않습니다.");
+        }
     }
 }
