@@ -72,7 +72,7 @@ public class OpenAIProperties {
         if (this.apiKeys.isEmpty() || this.prompts.isEmpty()) {
             throw new IllegalStateException("OpenAI API 키와 프롬프트 환경변수를 설정하세요.");
         }
-        if (this.apiKey.size() != this.prompts.size()) {
+        if (this.apiKeys.size() != this.prompts.size()) {
             throw new IllegalStateException("OpenAI API 키와 프롬프트 환경변수 개수가 일치하지 않습니다.");
         }
     }
