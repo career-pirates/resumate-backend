@@ -89,19 +89,14 @@ services:
     volumes:
       - ./k6:/scripts     # k6 폴더 전체를 마운트
     working_dir: /scripts # 기본 작업 폴더를 /scripts로 지정
-    depends_on:
-      - prometheus
-    networks:
-      - k6-network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 networks:
   redis-network:
     driver: bridge
   monitoring-network:
     driver: bridge
-  k6-network:
-    driver: bridge
-
 
 volumes:
   redis_volume_data:
