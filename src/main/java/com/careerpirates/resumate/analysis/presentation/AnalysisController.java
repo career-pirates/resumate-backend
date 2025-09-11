@@ -6,9 +6,11 @@ import com.careerpirates.resumate.analysis.application.service.AnalysisService;
 import com.careerpirates.resumate.analysis.docs.AnalysisControllerDocs;
 import com.careerpirates.resumate.analysis.message.exception.AnalysisError;
 import com.careerpirates.resumate.analysis.message.success.AnalysisSuccess;
+import com.careerpirates.resumate.auth.application.dto.CustomMemberDetails;
 import com.careerpirates.resumate.global.message.exception.core.BusinessException;
 import com.careerpirates.resumate.global.message.success.SuccessResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -23,7 +25,8 @@ public class AnalysisController implements AnalysisControllerDocs {
     private final AnalysisService analysisService;
 
     @PostMapping
-    public SuccessResponse<?> requestAnalysis(@RequestParam("folders") List<Long> folders) {
+    public SuccessResponse<?> requestAnalysis(@RequestParam("folders") List<Long> folders,
+                                              @AuthenticationPrincipal CustomMemberDetails member) {
         if (folders.isEmpty()) {
             throw new BusinessException(AnalysisError.NO_FOLDER_REQUESTED);
         }
@@ -31,7 +34,7 @@ public class AnalysisController implements AnalysisControllerDocs {
         List<Long> reusableFolderIds = new ArrayList<>();
         for (Long folderId : folders) {
             try {
-                analysisService.requestAnalysis(folderId);
+                analysisService.requestAnalysis(folderId, member.getMemberId());
             } catch (BusinessException e) {
                 if (e.getErrorCode() == AnalysisError.ANALYSIS_REUSABLE)
                     reusableFolderIds.add(folderId);
@@ -48,17 +51,19 @@ public class AnalysisController implements AnalysisControllerDocs {
 
     @GetMapping("/{folderId}")
     public SuccessResponse<AnalysisResponse> getAnalysis(@PathVariable Long folderId,
-                                                         @RequestParam(required = false) Long id) {
+                                                         @RequestParam(required = false) Long id,
+                                                         @AuthenticationPrincipal CustomMemberDetails member) {
 
-        AnalysisResponse response = analysisService.getAnalysis(folderId, id);
+        AnalysisResponse response = analysisService.getAnalysis(folderId, id, member.getMemberId());
         return SuccessResponse.of(AnalysisSuccess.GET_ANALYSIS, response);
     }
 
     @GetMapping
     public SuccessResponse<AnalysisListResponse> getAnalysisList(@RequestParam(defaultValue = "0") int page,
-                                                                 @RequestParam(defaultValue = "10") int size) {
+                                                                 @RequestParam(defaultValue = "10") int size,
+                                                                 @AuthenticationPrincipal CustomMemberDetails member) {
 
-        AnalysisListResponse response = analysisService.getAnalysisList(page, size);
+        AnalysisListResponse response = analysisService.getAnalysisList(page, size, member.getMemberId());
         return SuccessResponse.of(AnalysisSuccess.GET_ANALYSIS_LIST, response);
     }
 }

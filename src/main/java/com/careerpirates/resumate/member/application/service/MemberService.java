@@ -27,6 +27,20 @@ public class MemberService {
 			.orElseGet(() -> createMember(providerUserId, provider, email));
 	}
 
+	@Transactional(readOnly = true)
+	public Long getContinuousDays(Long memberId) {
+		return memberRepository.findContinuousDaysById(memberId)
+			.orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+	}
+
+	@Transactional
+	public void updateNickname(Long memberId, String nickname) {
+		Member member = memberRepository.findById(memberId)
+			.orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+		member.updateNickName(nickname.strip());
+	}
+
 	private void validEmail(String email) {
 		if (email == null || email.trim().isBlank()) {
 			throw new BusinessException(MemberErrorCode.EMAIL_NOT_VALID);

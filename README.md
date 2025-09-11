@@ -28,6 +28,7 @@
 - 🗂️ 경험 관리 : 기록된 회고를 사용자 지정 폴더 단위로 체계적 관리
 - 🧠 자기소개서 요소 추출 : LLM 활용 선택한 회고에서 자동으로 자기소개서 활용 요소 도출
 - 🔐 OAuth2 소셜 로그인
+- 📊 실시간 모니터링 : Prometheus + Grafana 기반 분석 처리 현황 모니터링
 - ⏰ 웹푸시 알림
 - ☁️ AWS 배포
   
@@ -45,6 +46,7 @@
 - **Backend**: Java 17, Spring Boot, Spring Data JPA
 - **Authentication** : OAuth2, JWT, Spring Security
 - **Database & Cache**: PostgreSQL(Amazon Aurora), Redis
+- **Monitoring**: Prometheus, Grafana, Micrometer
 - **CI/CD**: Github Actions
 - **Infra & Deployment**: AWS(ECS, ECR, RDS), Docker
 - **External API**: OpenAI API
@@ -58,6 +60,13 @@
 ### Backend API Docs
 
 `http://localhost:8080/swagger-ui/index.html`
+
+### 모니터링
+
+📊 **실시간 분석 모니터링**: [MONITORING.md](MONITORING.md)
+
+- **Prometheus**: http://localhost:9090
+- **Grafana**: http://localhost:3000 (admin/admin)
 
 # Backend 팀원
 

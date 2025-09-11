@@ -47,6 +47,9 @@ dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
 
+    // API 요청 제한
+    implementation 'com.bucket4j:bucket4j-core:8.10.1'
+
     // 모니터링
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'

@@ -5,6 +5,7 @@ import com.careerpirates.resumate.analysis.application.dto.response.AnalysisResp
 import com.careerpirates.resumate.analysis.application.dto.response.AnalysisResultDto;
 import com.careerpirates.resumate.analysis.application.dto.response.GPTResponse;
 import com.careerpirates.resumate.analysis.domain.Analysis;
+import com.careerpirates.resumate.analysis.domain.AnalysisStatus;
 import com.careerpirates.resumate.analysis.event.AnalysisCompletedEvent;
 import com.careerpirates.resumate.analysis.event.AnalysisErrorEvent;
 import com.careerpirates.resumate.analysis.infrastructure.AnalysisRepository;
@@ -13,6 +14,9 @@ import com.careerpirates.resumate.folder.domain.Folder;
 import com.careerpirates.resumate.folder.infrastructure.FolderRepository;
 import com.careerpirates.resumate.folder.message.exception.FolderError;
 import com.careerpirates.resumate.global.message.exception.core.BusinessException;
+import com.careerpirates.resumate.member.domain.entity.Member;
+import com.careerpirates.resumate.member.infrastructure.MemberRepository;
+import com.careerpirates.resumate.member.message.exception.MemberErrorCode;
 import com.careerpirates.resumate.notification.application.dto.request.Message;
 import com.careerpirates.resumate.notification.application.service.NotificationService;
 import com.careerpirates.resumate.review.domain.Review;
@@ -30,7 +34,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -43,10 +50,15 @@ public class AnalysisService {
     private final FolderRepository folderRepository;
     private final ReviewRepository reviewRepository;
     private final AnalysisRepository analysisRepository;
+    private final MemberRepository memberRepository;
+    private final AnalysisMetricsService analysisMetricsService;
 
     @Transactional
-    public void requestAnalysis(Long folderId) {
-        Folder folder = folderRepository.findById(folderId)
+    public void requestAnalysis(Long folderId, Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+
+        Folder folder = folderRepository.findByIdAndMember(folderId, member)
                 .orElseThrow(() -> new BusinessException(FolderError.FOLDER_NOT_FOUND));
 
         List<Review> reviews = reviewRepository.findByFolder(folder);
@@ -54,11 +66,11 @@ public class AnalysisService {
             throw new BusinessException(AnalysisError.FOLDER_EMPTY);
 
         // 1분 내 분석을 요청하였거나 폴더 내 회고 변경이 없었다면 런타임 예외 반환
-        findReusableAnalysis(folder);
+        findReusableAnalysis(folder, memberId);
 
         // 분석 객체 생성 및 저장
         Analysis analysis = Analysis.builder()
-                .memberId(1L) // TODO: 인증인가 구현 이후 실제 memberId 넣기
+                .memberId(memberId)
                 .folderId(folderId)
                 .folderName(combineFolderName(folder))
                 .build();
@@ -71,9 +83,14 @@ public class AnalysisService {
             analysis.startAnalysis(userInput);
             openAIService.sendRequest(analysis.getId(), userInput);
         } catch (Exception e) {
+            AnalysisStatus prev = analysis.getStatus();
             analysis.setError(e.getMessage());
+            if (prev == AnalysisStatus.PENDING) {
+                analysisMetricsService.onAnalysisError();
+            }
         } finally {
             analysisRepository.save(analysis);
+            analysisMetricsService.onAnalysisStarted();
         }
     }
 
@@ -87,7 +104,6 @@ public class AnalysisService {
                 .orElseThrow(() -> new BusinessException(AnalysisError.ANALYSIS_NOT_FOUND));
 
         try {
-            log.info(response.getOutput().toString());
             String output = response.getOutput().get(1).getContent().get(0).getText();
             analysis.setOutput(output);
 
@@ -103,10 +119,12 @@ public class AnalysisService {
                     response.getUsage().getOutputTokens()
             );
 
+            analysisMetricsService.onAnalysisCompleted();
             sendCompleteMessage(analysis);
         } catch (Exception e) {
             log.warn(e.getMessage());
             analysis.setError(e.getMessage());
+            analysisMetricsService.onAnalysisError();
             sendFailMessage(analysis);
         } finally {
             analysisRepository.save(analysis);
@@ -121,37 +139,62 @@ public class AnalysisService {
         Analysis analysis = analysisRepository.findById(analysisId)
                 .orElseThrow(() -> new BusinessException(AnalysisError.ANALYSIS_NOT_FOUND));
 
+        AnalysisStatus prev = analysis.getStatus();
         analysis.setError(event.getE().getMessage());
+        if (prev == AnalysisStatus.PENDING) {
+            analysisMetricsService.onAnalysisError();
+        }
+
         analysisRepository.save(analysis);
 
         sendFailMessage(analysis);
     }
 
     @Transactional(readOnly = true)
-    public AnalysisResponse getAnalysis(Long folderId, Long analysisId) {
+    public AnalysisResponse getAnalysis(Long folderId, Long analysisId, Long memberId) {
         Analysis analysis;
         if (analysisId == null) { // 분석 결과 ID가 없으면 최신 결과 응답
-            analysis = analysisRepository.findTop1ByFolderIdOrderByCreatedAtDesc(folderId)
+            analysis = analysisRepository.findTop1ByMemberIdAndFolderIdOrderByCreatedAtDesc(memberId, folderId)
                     .orElseThrow(() -> new BusinessException(AnalysisError.ANALYSIS_NOT_FOUND));
         }
         else { // 분석 결과 ID 제공시 해당 결과 응답
-            analysis = analysisRepository.findByIdAndFolderId(analysisId, folderId)
+            analysis = analysisRepository.findByIdAndMemberIdAndFolderId(analysisId, memberId, folderId)
                     .orElseThrow(() -> new BusinessException(AnalysisError.ANALYSIS_NOT_FOUND));
         }
 
-        return AnalysisResponse.of(analysis);
+        Member member = memberRepository.findById(memberId).orElseThrow(
+                () -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND)
+        );
+        Folder folder = folderRepository.findByIdAndMember(analysis.getFolderId(), member)
+                .orElse(null);
+
+        return AnalysisResponse.of(analysis, folder);
     }
 
     @Transactional(readOnly = true)
-    public AnalysisListResponse getAnalysisList(int page, int size) {
+    public AnalysisListResponse getAnalysisList(int page, int size, Long memberId) {
         Pageable pageable = PageRequest.of(page, size);
 
-        Slice<Analysis> analysisList = analysisRepository.findAllByOrderByCreatedAtDesc(pageable);
-        return AnalysisListResponse.of(analysisList);
+        Slice<Analysis> analysisList = analysisRepository.findByMemberIdOrderByCreatedAtDesc(memberId, pageable);
+
+        Member member = memberRepository.findById(memberId).orElseThrow(
+                () -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND)
+        );
+        List<Folder> folders = folderRepository.findByIdInAndMember(
+                analysisList.stream().map(Analysis::getFolderId).toList(), member
+        );
+        Map<Long, Folder> folderMap = folders.stream().collect(Collectors.toMap(Folder::getId, Function.identity()));
+
+        return AnalysisListResponse.of(analysisList, folderMap);
     }
 
-    private void findReusableAnalysis(Folder folder) {
-        Optional<Analysis> reusable = analysisRepository.findTop1ByFolderIdOrderByCreatedAtDesc(folder.getId())
+    @Transactional(readOnly = true)
+    public long countTotalAnalysis(Long memberId) {
+        return analysisRepository.countByMemberIdAndStatus(memberId, AnalysisStatus.SUCCESS);
+    }
+
+    private void findReusableAnalysis(Folder folder, Long memberId) {
+        Optional<Analysis> reusable = analysisRepository.findTop1ByMemberIdAndFolderIdOrderByCreatedAtDesc(memberId, folder.getId())
                 .filter(analysis -> isReusable(analysis, folder));
 
         if (reusable.isPresent())
@@ -160,8 +203,9 @@ public class AnalysisService {
 
     private boolean isReusable(Analysis analysis, Folder folder) {
         LocalDateTime now = LocalDateTime.now();
-        return analysis.getCreatedAt().isAfter(now.minusMinutes(1))
-                || analysis.getCreatedAt().isAfter(folder.getModifiedAt());
+        return analysis.getCreatedAt().isAfter(now.minusMinutes(5)) &&
+                (analysis.getCreatedAt().isAfter(now.minusMinutes(1)) ||
+                        analysis.getCreatedAt().isAfter(folder.getModifiedAt()));
     }
 
     private String combineFolderName(Folder folder) {
@@ -189,16 +233,18 @@ public class AnalysisService {
     private void sendCompleteMessage(Analysis analysis) {
         notificationService.sendNotificationTo(Message.builder()
                 .title("회고 분석 완료")
-                .message(String.format("'%s'의 자소서 재료 뽑기가 완료되었습니다!", analysis.getFolderName()))
-                .build()
+                .message(String.format("'%s'의 자소서 재료 분석이 완료되었습니다!", analysis.getFolderName()))
+                .build(),
+                analysis.getMemberId()
         );
     }
 
     private void sendFailMessage(Analysis analysis) {
         notificationService.sendNotificationTo(Message.builder()
                 .title("회고 분석 실패")
-                .message(String.format("'%s'의 자소서 재료 뽑기 중 오류가 발생하였습니다.", analysis.getFolderName()))
-                .build()
+                .message(String.format("'%s'의 자소서 재료 분석 중 오류가 발생하였습니다.", analysis.getFolderName()))
+                .build(),
+                analysis.getMemberId()
         );
     }
 }
