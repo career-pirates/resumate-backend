@@ -5,8 +5,7 @@ import com.careerpirates.resumate.analysis.application.dto.response.GPTResponse;
 import com.careerpirates.resumate.analysis.config.OpenAIRateLimiter;
 import com.careerpirates.resumate.analysis.event.AnalysisCompletedEvent;
 import com.careerpirates.resumate.analysis.event.AnalysisErrorEvent;
-import com.careerpirates.resumate.analysis.message.exception.AnalysisError;
-import com.careerpirates.resumate.global.message.exception.core.BusinessException;
+import com.careerpirates.resumate.analysis.worker.RedisQueue;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -28,14 +27,13 @@ public class OpenAIService {
     private final OpenAIProperties properties;
     private final OpenAIRateLimiter rateLimiter;
     private final ApplicationEventPublisher eventPublisher;
+    private final RedisQueue redisQueue;
 
     @Async
     public CompletableFuture<Void> sendRequest(Long analysisId, String userInput) {
         if (!rateLimiter.tryConsume()) {
             log.info("OpenAI API rate limit 초과: { analysisId={} }", analysisId);
-            eventPublisher.publishEvent(
-                    new AnalysisErrorEvent(analysisId, new BusinessException(AnalysisError.RATE_LIMIT_EXCEEDED))
-            );
+            redisQueue.enqueue(analysisId, userInput);
             return CompletableFuture.completedFuture(null);
         }
 
