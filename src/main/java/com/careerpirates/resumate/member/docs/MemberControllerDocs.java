@@ -30,7 +30,7 @@ public interface MemberControllerDocs {
 	})
 	SuccessResponse<StatisticsResponse> getStatistics(@AuthenticationPrincipal CustomMemberDetails customMemberDetails);
 
-	@Operation(method = "GET", summary = "닉네임 설정", description = "닉네임을 변경합니다.")
+	@Operation(method = "POST", summary = "닉네임 설정", description = "닉네임을 변경합니다.")
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "닉네임 설정에 성공했습니다."),
 			@ApiResponse(responseCode = "404", description = "해당 유저를 찾을 수 없습니다.",

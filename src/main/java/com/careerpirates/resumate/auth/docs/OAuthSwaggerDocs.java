@@ -43,7 +43,7 @@ public class OAuthSwaggerDocs {
             summary = "네이버 로그인",
             description = "네이버 OAuth2 로그인을 위한 리디렉션 URL입니다. [실제 로그인 URL: `/oauth2/authorization/naver?state={deviceId}`] 브라우저에서 직접 접속하세요."
     )
-    @ApiResponse(responseCode = "302", description = "카카오 로그인 페이지로 리디렉션")
+    @ApiResponse(responseCode = "302", description = "네이버 로그인 페이지로 리디렉션")
     @GetMapping("/naver-login")
     public ResponseEntity<Void> naverLoginDocOnly() {
         // 문서용이므로 실제 로직 없음
