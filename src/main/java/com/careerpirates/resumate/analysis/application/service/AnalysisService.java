@@ -78,16 +78,16 @@ public class AnalysisService {
 
         try {
             analysis.startAnalysis(userInput);
-            analysisMetricsService.onAnalysisStarted();
             openAIService.sendRequest(analysis.getId(), userInput);
         } catch (Exception e) {
+            AnalysisStatus prev = analysis.getStatus();
             analysis.setError(e.getMessage());
-
-            if (analysis.getStatus() == AnalysisStatus.PENDING) {
+            if (prev == AnalysisStatus.PENDING) {
                 analysisMetricsService.onAnalysisError();
             }
         } finally {
             analysisRepository.save(analysis);
+            analysisMetricsService.onAnalysisStarted();
         }
     }
 
@@ -136,9 +136,9 @@ public class AnalysisService {
         Analysis analysis = analysisRepository.findById(analysisId)
                 .orElseThrow(() -> new BusinessException(AnalysisError.ANALYSIS_NOT_FOUND));
 
+        AnalysisStatus prev = analysis.getStatus();
         analysis.setError(event.getE().getMessage());
-
-        if (analysis.getStatus() == AnalysisStatus.PENDING) {
+        if (prev == AnalysisStatus.PENDING) {
             analysisMetricsService.onAnalysisError();
         }
 
