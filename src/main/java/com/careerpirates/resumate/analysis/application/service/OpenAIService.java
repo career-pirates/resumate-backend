@@ -8,6 +8,7 @@ import com.careerpirates.resumate.analysis.event.AnalysisErrorEvent;
 import com.careerpirates.resumate.analysis.worker.RedisQueue;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -15,23 +16,46 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class OpenAIService {
 
     private final WebClient webClient;
     private final OpenAIProperties properties;
-    private final OpenAIRateLimiter rateLimiter;
     private final ApplicationEventPublisher eventPublisher;
     private final RedisQueue redisQueue;
 
+    private final List<OpenAIRateLimiter> rateLimiters;
+
+    @Autowired
+    public OpenAIService(WebClient webClient, OpenAIProperties properties, ApplicationEventPublisher eventPublisher,
+                         RedisQueue redisQueue) {
+        this.webClient = webClient;
+        this.properties = properties;
+        this.eventPublisher = eventPublisher;
+        this.redisQueue = redisQueue;
+
+        this.rateLimiters = new ArrayList<>();
+        for (int i = 0; i < properties.getApiKeys().size(); i++) {
+            this.rateLimiters.add(
+                    new OpenAIRateLimiter(properties.getApiKeys().get(i), properties.getPrompts().get(i))
+            );
+        }
+        log.info("OpenAI API Bucket: { count={}, bucketSize={} }",
+                rateLimiters.size(),
+                rateLimiters.stream().map(r -> r.getApiKey().getBucketSize()).toList()
+        );
+    }
+
     @Async
     public CompletableFuture<Void> sendRequest(Long analysisId, String userInput) {
-        if (!rateLimiter.tryConsume()) {
+        OpenAIRateLimiter rateLimiter;
+        if ((rateLimiter = tryConsumeLimiter()) == null) {
             log.info("OpenAI API rate limit 초과: { analysisId={} }", analysisId);
             redisQueue.enqueue(analysisId, userInput);
             return CompletableFuture.completedFuture(null);
@@ -40,8 +64,8 @@ public class OpenAIService {
         // 요청 Body를 Java Map 구조로 정의
         Map<String, Object> requestBody = Map.of(
                 "prompt", Map.of(
-                        "id", properties.getPrompt().getId(),
-                        "version", properties.getPrompt().getVersion()
+                        "id", rateLimiter.getPrompt().getId(),
+                        "version", rateLimiter.getPrompt().getVersion()
                 ),
                 "input", new Object[]{
                         Map.of(
@@ -61,7 +85,7 @@ public class OpenAIService {
                 .uri(properties.getBaseUrl() + "/responses")
                 .headers(headers -> {
                     headers.set(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
-                    headers.setBearerAuth(properties.getApiKey());
+                    headers.setBearerAuth(rateLimiter.getApiKey().getKey());
                 })
                 .bodyValue(requestBody)
                 .retrieve()
@@ -75,5 +99,16 @@ public class OpenAIService {
                 .then()
                 .toFuture();
 
+    }
+
+    public boolean canConsume() {
+        return rateLimiters.stream().anyMatch(OpenAIRateLimiter::canConsume);
+    }
+
+    public OpenAIRateLimiter tryConsumeLimiter() {
+        return rateLimiters.stream()
+                .filter(OpenAIRateLimiter::tryConsume)
+                .findFirst()
+                .orElse(null);
     }
 }

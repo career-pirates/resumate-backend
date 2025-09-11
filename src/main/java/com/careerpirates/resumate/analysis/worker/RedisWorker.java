@@ -15,14 +15,11 @@ public class RedisWorker {
 
     private final OpenAIService openAIService;
     private final RedisQueue redisQueue;
-    private final OpenAIRateLimiter rateLimiter;
 
     @Async("workerExecutor")
     public void process(AnalysisRequestDto request) {
-        if (rateLimiter.canConsume()) {
-            log.info("큐에서 꺼낸 분석 요청 수행: { analysisId={} }", request.analysisId());
-            openAIService.sendRequest(request.analysisId(), request.userInput());
-        }
+        log.info("큐에서 꺼낸 분석 요청 수행: { analysisId={} }", request.analysisId());
+        openAIService.sendRequest(request.analysisId(), request.userInput());
     }
 
     /**
@@ -30,7 +27,7 @@ public class RedisWorker {
      */
     @Scheduled(fixedDelay = 5000)
     public void consume() {
-        while (!redisQueue.isQueueEmpty() && rateLimiter.canConsume()) {
+        while (!redisQueue.isQueueEmpty() && openAIService.canConsume()) {
             AnalysisRequestDto request = redisQueue.dequeue();
             if (request != null) {
                 process(request); // @Async 병렬 처리

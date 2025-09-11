@@ -2,19 +2,25 @@ package com.careerpirates.resumate.analysis.config;
 
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
-import org.springframework.stereotype.Component;
+import lombok.Getter;
 
 import java.time.Duration;
 
-@Component
 public class OpenAIRateLimiter {
 
+    @Getter
+    private final OpenAIProperties.APIKey apiKey;
+    @Getter
+    private final OpenAIProperties.Prompt prompt;
     private final Bucket bucket;
 
-    public OpenAIRateLimiter() {
+    public OpenAIRateLimiter(OpenAIProperties.APIKey apiKey, OpenAIProperties.Prompt prompt) {
+        this.apiKey = apiKey;
+        this.prompt = prompt;
+
         Bandwidth limit = Bandwidth.builder()
-                .capacity(5)
-                .refillIntervally(5, Duration.ofMinutes(1))
+                .capacity(apiKey.getBucketSize())
+                .refillIntervally(apiKey.getBucketSize(), Duration.ofMinutes(1))
                 .build();
 
         this.bucket = Bucket.builder().addLimit(limit).build();
