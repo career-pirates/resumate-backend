@@ -37,6 +37,7 @@
 ## 시스템 구성도
 
 <!-- 시스템 구성도 이미지 -->
+<img width="1557" height="1088" alt="resumate_system_architecture" src="https://github.com/user-attachments/assets/1d8fd34f-0b49-4f40-9f86-0f20e64181b2" />
 
 <br/>
 <br/>
