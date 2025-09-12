@@ -22,7 +22,7 @@ public class WebClientConfig {
         // Netty 기반 HTTP client 설정
         HttpClient httpClient = HttpClient.create()
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000) // TCP 연결 타임아웃
-                .responseTimeout(Duration.ofMinutes(2))             // 응답 전체 타임아웃
+                .responseTimeout(Duration.ofMinutes(10))             // 응답 전체 타임아웃
                 .doOnConnected(conn -> conn
                         .addHandlerLast(new ReadTimeoutHandler(600, TimeUnit.SECONDS))   // 읽기 타임아웃
                         .addHandlerLast(new WriteTimeoutHandler(600, TimeUnit.SECONDS))  // 쓰기 타임아웃
