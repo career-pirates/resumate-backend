@@ -6,13 +6,11 @@ import com.careerpirates.resumate.analysis.config.OpenAIRateLimiter;
 import com.careerpirates.resumate.analysis.event.AnalysisCompletedEvent;
 import com.careerpirates.resumate.analysis.event.AnalysisErrorEvent;
 import com.careerpirates.resumate.analysis.worker.RedisQueue;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -52,7 +50,6 @@ public class OpenAIService {
         );
     }
 
-    @Async
     public CompletableFuture<Void> sendRequest(Long analysisId, String userInput) {
         OpenAIRateLimiter rateLimiter;
         if ((rateLimiter = tryConsumeLimiter()) == null) {
