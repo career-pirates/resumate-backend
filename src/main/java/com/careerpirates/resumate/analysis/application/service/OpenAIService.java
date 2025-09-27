@@ -13,7 +13,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.util.retry.Retry;
 
+import java.io.IOException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -90,6 +94,18 @@ public class OpenAIService {
                 .doOnNext(response -> {
                     eventPublisher.publishEvent(new AnalysisCompletedEvent(analysisId, response));
                 })
+                .retryWhen(
+                        Retry.backoff(1, Duration.ofSeconds(2)) // 1번 재시도, 2초 뒤
+                                .filter(throwable -> {
+                                    if (throwable instanceof WebClientResponseException e) {
+                                        // 서버가 응답한 경우: 500대 상태 코드일 때 재시도
+                                        return e.getStatusCode().is5xxServerError();
+                                    }
+
+                                    // 네트워크 계층 예외(연결 거부, 응답 타임아웃, 연결 닫힘 등): 재시도
+                                    return throwable instanceof IOException;
+                                })
+                )
                 .onErrorContinue((throwable, obj) -> {
                     eventPublisher.publishEvent(new AnalysisErrorEvent(analysisId, throwable));
                 })
