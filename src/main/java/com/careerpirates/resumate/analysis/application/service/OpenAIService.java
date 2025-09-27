@@ -13,6 +13,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.util.retry.Retry;
 
@@ -103,7 +104,9 @@ public class OpenAIService {
                                     }
 
                                     // 네트워크 계층 예외(연결 거부, 응답 타임아웃, 연결 닫힘 등): 재시도
-                                    return throwable instanceof IOException;
+                                    return throwable instanceof WebClientRequestException
+                                            || throwable instanceof IOException
+                                            || throwable.getCause() instanceof IOException;
                                 })
                 )
                 .onErrorContinue((throwable, obj) -> {
